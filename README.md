@@ -1,42 +1,38 @@
 # WashLy Web
 
-PWA for owners, managers, and branch staff. Business rules live in [washly-api](https://github.com/DevD3nz/washly-api).
+PWA for owners, managers, and branch staff. Business rules: [washly-api](https://github.com/DevD3nz/washly-api).
 
-> Full system picture (live + planned): **System overview** below. Monorepo: `docs/SYSTEM-OVERVIEW.md`.
+Monorepo: `docs/SYSTEM-OVERVIEW.md` (full system in business terms).
 
 ---
 
 ## System overview
 
-Same business as the API — screens for what happens sa shop.
+Multi-branch laundry — **orders** sa floor, **people** on shift, **money** ug **customers** para sa owner.
 
-### Purpose
-
-Multi-branch laundry: **orders** on the floor, **people** on shift, later **money** and **customer** insight for the owner.
-
-### Order cycle *(live on staff/owner screens)*
+### Order cycle
 
 **Pickup:** Received → Washing → Drying → Ready → Claimed  
 
 **Delivery:** For delivery → Out → Delivered  
 
-Kanban board + receipt sharing.
+Kanban board + receipt.
 
-### People cycle *(live)*
+### People cycle
 
-`/staff/login` → clock in → board → clock out.
+Staff PIN login → clock in → board → clock out.
 
-### Money & insight *(planned UI)*
+### Money & oversight
 
-Command Center, expenses, cash, inventory, payroll, subscription billing — same roadmap as API; web is the owner/staff face.
+Command Center, expenses, cash, inventory, payroll, subscription — owner/staff screens for the same business logic as the API.
 
-### Customers *(planned)*
+### Customers
 
-**Suki** network by phone across branches.
+**Suki** by phone across branches.
 
 ---
 
-## Screens today
+## Entry points
 
 | URL | Who |
 |-----|-----|
@@ -48,7 +44,7 @@ Command Center, expenses, cash, inventory, payroll, subscription billing — sam
 
 ## Developer setup
 
-API must run on http://localhost:8000 first.
+API on http://localhost:8000 first.
 
 ```powershell
 cd web
@@ -57,7 +53,7 @@ npm install
 npm run dev
 ```
 
-`VITE_API_URL` — empty in dev (proxy to API). Set in production if API is elsewhere.
+`VITE_API_URL` — empty in dev (proxy). Set in production if API is elsewhere.
 
 ```powershell
 npm run build
