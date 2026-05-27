@@ -1,24 +1,24 @@
 # WashLy Web
 
-React PWA for **WashLy** — owner, manager, and branch staff.  
+React PWA for **WashLy** — owner, manager, and branch staff. Built for **Philippine** laundry shops.  
 API: [washly-api](https://github.com/DevD3nz/washly-api)
 
 ---
 
 ## System overview
 
-Same business system as the API — kini ang screens sa shop.
+Same business system as the API — this repo is the shop-facing screens.
 
 ### Purpose
 
-WashLy para sa **Philippine laundry businesses** nga dunay **daghang branch**: usa ka company, daghang shop, staff sa counter, owner nga gusto makita ang operasyon without standing in every store.
+WashLy is for **Philippine laundry businesses with multiple branches**: one company, several shops, counter staff, and an owner who needs visibility without being at every location.
 
-Upat ka linya sa operasyon:
+Four operational lines:
 
-- **Production** — labada gikan drop-off hangtod ready o delivered  
-- **People** — shifts, kinsa nag-handle sa orders  
-- **Money** — kita, gasto, sweldo, ug bayad sa WashLy  
-- **Customers** — repeat clients (Suki) across branches  
+- **Production** — laundry from drop-off through ready or delivered  
+- **People** — shifts and who handles each order  
+- **Money** — revenue, expenses, wages, and payment to WashLy  
+- **Customers** — repeat clients (**Suki**) across branches  
 
 ### Business structure
 
@@ -27,26 +27,26 @@ WashLy account (one laundry company)
 ├── Subscription plan (Trial → Starter → Growth → Pro)
 ├── Owner (+ optional managers)
 ├── Branches (each = one physical shop)
-│   ├── Staff / employees (PIN sa counter)
+│   ├── Staff / employees (PIN at the counter)
 │   ├── Orders (per branch)
 │   └── Timecards (shifts)
 └── Audit history (who changed what)
 ```
 
-| Role | Role sa shop |
-|------|----------------|
+| Role | Role in the shop |
+|------|------------------|
 | **Owner** | Setup, branches, people; Command Center, billing |
-| **Manager** | Day-to-day sa branches ug orders |
+| **Manager** | Day-to-day on branches and orders |
 | **Staff** | One branch: clock in, board, clock out |
 | **Customer** | Counter + receipt link |
 
-### Order cycle (sentro sa shop)
+### Order cycle (heart of the shop)
 
 **Pickup:** `Received → Washing → Drying → Ready → Claimed`  
 
 **Delivery:** `For delivery → Out → Delivered`  
 
-Board (kanban) + receipt link/text para sa customer.
+Kanban board + receipt link or text for the customer.
 
 ### People cycle
 
@@ -54,28 +54,28 @@ Board (kanban) + receipt link/text para sa customer.
 /staff/login → Clock in → Board → Clock out
 ```
 
-Timecards → payroll. PIN sa counter.
+Timecards → payroll. PIN at the counter.
 
 ### Money cycle
 
-Order payments → revenue. Expenses → gross profit. Payroll → net profit. Subscription sa WashLy (manual proof).
+Order payments → revenue. Expenses → gross profit. Payroll → net profit. Subscription to WashLy (manual GCash/bank proof).
 
-**Command Center** · cash shifts · inventory · reports — owner-facing screens.
+**Command Center**, cash shifts, inventory, reports — owner-facing screens.
 
 ### Customers: Suki
 
-Repeat customer by **phone** across branches — one profile, faster intake.
+Regular customer by **phone** across branches — one profile, faster intake.
 
 ### Subscription, notifications, trust
 
-Trial → active → grace → suspended (manual GCash/bank). Email/SMS optional. Audit → owner timeline.
+Trial → active → grace → suspended (manual GCash/bank). Optional email/SMS. Audit log → owner timeline.
 
 ### Web vs API
 
 | Part | Role |
 |------|------|
 | **Web** (this repo) | Owner, manager, staff UI |
-| **API** | Business rules & data |
+| **API** | Business rules and data |
 
 ---
 
@@ -101,7 +101,7 @@ npm run dev
 
 Open http://localhost:5173
 
-`VITE_API_URL` — leave empty in dev (Vite proxies `/api` to port 8000). Set in production if API is on another host.
+`VITE_API_URL` — leave empty in dev (Vite proxies `/api` to port 8000). Set in production if the API is on another host.
 
 ```powershell
 npm run build
