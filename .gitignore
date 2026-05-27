@@ -1,0 +1,41 @@
+# Dependencies & production build
+node_modules
+dist
+dist-ssr
+dev-dist
+
+# Environment (commit .env.example only)
+.env
+.env.*
+!.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Test / coverage
+coverage
+
+# Vite cache (if created outside node_modules)
+.vite
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.cursor/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
