@@ -1,49 +1,54 @@
 # WashLy Web
 
-PWA screens for **WashLy** — the laundry shop runs on business rules in [washly-api](https://github.com/DevD3nz/washly-api); this repo is how **owner, manager, and staff** interact with that logic on phone or desktop.
+PWA for owners, managers, and branch staff. Business rules live in [washly-api](https://github.com/DevD3nz/washly-api).
+
+> Full system picture (live + planned): **System overview** below. Monorepo: `docs/SYSTEM-OVERVIEW.md`.
 
 ---
 
-## Business model (same system)
+## System overview
 
-| Concept | Meaning |
-|---------|---------|
-| **Account** | One laundry company |
-| **Branch** | One shop — staff only work their branch |
-| **Owner / manager** | Branches, employees, order oversight |
-| **Staff** | PIN login, clock, move orders on the floor board |
+Same business as the API — screens for what happens sa shop.
 
----
+### Purpose
 
-## Order lifecycle (what the UI reflects)
+Multi-branch laundry: **orders** on the floor, **people** on shift, later **money** and **customer** insight for the owner.
 
-**Pickup at shop:** Received → Washing → Drying → Ready → Claimed  
+### Order cycle *(live on staff/owner screens)*
+
+**Pickup:** Received → Washing → Drying → Ready → Claimed  
 
 **Delivery:** For delivery → Out → Delivered  
 
-Staff and managers move cards on the **board** as laundry progresses. Receipts can be shared when an order is ready.
+Kanban board + receipt sharing.
+
+### People cycle *(live)*
+
+`/staff/login` → clock in → board → clock out.
+
+### Money & insight *(planned UI)*
+
+Command Center, expenses, cash, inventory, payroll, subscription billing — same roadmap as API; web is the owner/staff face.
+
+### Customers *(planned)*
+
+**Suki** network by phone across branches.
 
 ---
 
-## Typical day (on screen)
+## Screens today
 
-```text
-/staff/login → clock in
-    → board: accept drop-offs, advance statuses
-    → receipt for customer
-    → claimed or delivered
-→ clock out
-
-Owner/manager: /login → branches, employees, orders across the business
-```
-
-One-time **company setup** (`/setup`) registers the business before anyone logs in.
+| URL | Who |
+|-----|-----|
+| `/setup` | One-time company registration |
+| `/login` | Owner / manager |
+| `/staff/login` | Branch staff (PIN) |
 
 ---
 
 ## Developer setup
 
-Requires API on http://localhost:8000 — see [washly-api](https://github.com/DevD3nz/washly-api).
+API must run on http://localhost:8000 first.
 
 ```powershell
 cd web
@@ -52,15 +57,9 @@ npm install
 npm run dev
 ```
 
-| URL | Purpose |
-|-----|---------|
-| http://localhost:5173/setup | First business registration |
-| http://localhost:5173/login | Owner / manager |
-| http://localhost:5173/staff/login | Branch staff (PIN) |
-
-`VITE_API_URL` — leave empty in dev (Vite proxies `/api` to the API). Set for production if the API is on another host.
+`VITE_API_URL` — empty in dev (proxy to API). Set in production if API is elsewhere.
 
 ```powershell
-npm run build    # production → dist/
+npm run build
 npm run preview
 ```
