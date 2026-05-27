@@ -1,10 +1,49 @@
 # WashLy Web
 
-React + Vite PWA for WashLy (owner/manager dashboard + staff PIN flows).
+PWA screens for **WashLy** — the laundry shop runs on business rules in [washly-api](https://github.com/DevD3nz/washly-api); this repo is how **owner, manager, and staff** interact with that logic on phone or desktop.
 
-**API (required):** [washly-api](https://github.com/DevD3nz/washly-api) — run on `http://localhost:8000` before starting the web app.
+---
 
-## Quick start
+## Business model (same system)
+
+| Concept | Meaning |
+|---------|---------|
+| **Account** | One laundry company |
+| **Branch** | One shop — staff only work their branch |
+| **Owner / manager** | Branches, employees, order oversight |
+| **Staff** | PIN login, clock, move orders on the floor board |
+
+---
+
+## Order lifecycle (what the UI reflects)
+
+**Pickup at shop:** Received → Washing → Drying → Ready → Claimed  
+
+**Delivery:** For delivery → Out → Delivered  
+
+Staff and managers move cards on the **board** as laundry progresses. Receipts can be shared when an order is ready.
+
+---
+
+## Typical day (on screen)
+
+```text
+/staff/login → clock in
+    → board: accept drop-offs, advance statuses
+    → receipt for customer
+    → claimed or delivered
+→ clock out
+
+Owner/manager: /login → branches, employees, orders across the business
+```
+
+One-time **company setup** (`/setup`) registers the business before anyone logs in.
+
+---
+
+## Developer setup
+
+Requires API on http://localhost:8000 — see [washly-api](https://github.com/DevD3nz/washly-api).
 
 ```powershell
 cd web
@@ -13,40 +52,15 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173
+| URL | Purpose |
+|-----|---------|
+| http://localhost:5173/setup | First business registration |
+| http://localhost:5173/login | Owner / manager |
+| http://localhost:5173/staff/login | Branch staff (PIN) |
 
-- **First-time setup:** http://localhost:5173/setup (needs API running; one account per install)
-- **Owner login:** http://localhost:5173/login
-- **Staff PIN:** http://localhost:5173/staff/login
+`VITE_API_URL` — leave empty in dev (Vite proxies `/api` to the API). Set for production if the API is on another host.
 
-## Environment
-
-| Variable | Default | Notes |
-|----------|---------|--------|
-| `VITE_API_URL` | *(empty)* | Leave empty for dev: Vite proxies `/api` → `http://localhost:8000` |
-
-For production or a remote API, set e.g. `VITE_API_URL=https://api.example.com/api/v1`.
-
-## API / CORS
-
-In dev, requests go through the Vite proxy (`vite.config.ts`), so you usually do not need CORS changes.
-
-If you point `VITE_API_URL` at the API directly, ensure the API allows your origin:
-
-```env
-CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```powershell
+npm run build    # production → dist/
+npm run preview
 ```
-
-(in `washly-api` `.env`)
-
-## Scripts
-
-| Command | Purpose |
-|---------|---------|
-| `npm run dev` | Dev server (port 5173) |
-| `npm run build` | Production build → `dist/` |
-| `npm run preview` | Preview production build |
-
-## Stack
-
-React 19 · TypeScript · Vite · Tailwind CSS 4 · React Router · React Hook Form + Zod · PWA (`vite-plugin-pwa`)
