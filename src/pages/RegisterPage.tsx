@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/layout/AuthLayout';
 import { Button } from '../components/ui/Button';
@@ -6,14 +6,11 @@ import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import { useAuth } from '../context/AuthContext';
-import { fetchSetupStatus, postSetup } from '../lib/api';
+import { postRegister } from '../lib/api';
 
-export function SetupPage() {
+export function RegisterPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const [statusLoading, setStatusLoading] = useState(true);
-  const [configured, setConfigured] = useState(false);
-  const [statusMessage, setStatusMessage] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [branchName, setBranchName] = useState('');
   const [branchNameEdited, setBranchNameEdited] = useState(false);
@@ -25,18 +22,6 @@ export function SetupPage() {
   const [success, setSuccess] = useState('');
   const [createdBranchName, setCreatedBranchName] = useState('');
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    void fetchSetupStatus()
-      .then((status) => {
-        setConfigured(status.configured);
-        setStatusMessage(status.message);
-      })
-      .catch((e) => {
-        setError(e instanceof Error ? e.message : 'Cannot reach API');
-      })
-      .finally(() => setStatusLoading(false));
-  }, []);
 
   if (!authLoading && user) {
     return <Navigate to="/" replace />;
@@ -56,7 +41,7 @@ export function SetupPage() {
     setSubmitting(true);
     try {
       const trimmedBranch = branchName.trim() || companyName.trim();
-      const res = await postSetup({
+      const res = await postRegister({
         company_name: companyName.trim(),
         branch_name: trimmedBranch,
         owner_name: ownerName.trim(),
@@ -64,80 +49,32 @@ export function SetupPage() {
         password,
         password_confirmation: passwordConfirmation,
       });
-      setConfigured(true);
       setCreatedBranchName(res.primary_branch.name);
       setSuccess(res.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Setup failed');
+      setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
       setSubmitting(false);
     }
-  }
-
-  if (authLoading || statusLoading) {
-    return (
-      <AuthLayout>
-        <Card className="p-6 sm:p-8 text-center text-sm text-muted-foreground">
-          Loading setup…
-        </Card>
-      </AuthLayout>
-    );
-  }
-
-  if (configured && !success) {
-    return (
-      <AuthLayout>
-        <Card className="p-6 sm:p-8">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Already set up
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {statusMessage ||
-              'Naa na ang owner account sa server. Sign in lang — dili na pwede mag-second setup.'}
-          </p>
-          <Button
-            type="button"
-            className="mt-6 w-full"
-            onClick={() => navigate('/login')}
-          >
-            Go to login
-          </Button>
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            Bag-o nga shop? Kinahanglan fresh database or dev reset — setup is
-            once per WashLy install.
-          </p>
-        </Card>
-      </AuthLayout>
-    );
   }
 
   return (
     <AuthLayout>
       <Card className="p-6 sm:p-8">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          WashLy setup
+          Sign up your laundry
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          One-time: create your laundry business, main branch, and owner account.
+          Create a new WashLy account — your shop, main branch, and owner login.
+          Each laundry business gets its own isolated data.
         </p>
-
-        {!configured && (
-          <p className="mt-3 rounded-xl border border-border bg-accent px-3 py-2 text-xs text-accent-foreground">
-            Fill out this form — dili i-open ang{' '}
-            <code className="rounded bg-muted px-1 font-mono text-[11px]">/api/v1/setup</code>{' '}
-            sa browser address bar.
-          </p>
-        )}
 
         {success ? (
           <div className="mt-6 space-y-3">
             <p className="text-sm text-primary">{success}</p>
             {createdBranchName && (
               <p className="rounded-xl border border-primary/20 bg-accent px-3 py-2 text-sm text-accent-foreground">
-                Main branch created: <strong>{createdBranchName}</strong>
-                <span className="mt-1 block text-xs text-muted-foreground">
-                  Makapili na dayon ug staff ani nga branch human login.
-                </span>
+                Main branch: <strong>{createdBranchName}</strong>
               </p>
             )}
             <Button type="button" className="w-full" onClick={() => navigate('/login')}>
@@ -169,10 +106,6 @@ export function SetupPage() {
                   setBranchName(e.target.value);
                 }}
               />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Gi-create dayon ni nga branch sa setup — di na kinahanglan i-add manually
-                sa Branches page.
-              </p>
             </div>
             <div>
               <Label htmlFor="owner_name">Owner name *</Label>
@@ -230,13 +163,13 @@ export function SetupPage() {
               </p>
             )}
             <Button type="submit" disabled={submitting} className="w-full">
-              {submitting ? 'Creating…' : 'Create shop & main branch'}
+              {submitting ? 'Creating…' : 'Create account'}
             </Button>
           </form>
         )}
 
         <p className="mt-4 text-center text-sm text-muted-foreground">
-          Already set up?{' '}
+          Already have an account?{' '}
           <Link to="/login" className="font-medium text-primary hover:underline">
             Sign in
           </Link>

@@ -1,11 +1,17 @@
 import { z } from 'zod';
 
+/** Plain string from RHF — empty means no rate. */
+const optionalRateInput = z.string().refine(
+  (val) => val === '' || (!Number.isNaN(Number(val)) && Number(val) >= 0),
+  { message: 'Enter a valid rate' },
+);
+
 export const employeeFormSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   branch_id: z.number().int().positive('Select a branch'),
   employee_code: z.string().max(32).optional().or(z.literal('')),
   phone: z.string().max(32).optional().or(z.literal('')),
-  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  email: z.string().min(1, 'Email is required').email('Invalid email'),
   job_title: z.enum([
     'attendant',
     'rider',
@@ -23,8 +29,8 @@ export const employeeFormSchema = z.object({
     .string()
     .optional()
     .refine((v) => !v || /^\d{4}$/.test(v), 'PIN must be 4 digits'),
-  daily_rate: z.union([z.number().min(0), z.nan()]).optional(),
-  hourly_rate: z.union([z.number().min(0), z.nan()]).optional(),
+  daily_rate: optionalRateInput,
+  hourly_rate: optionalRateInput,
   notes: z.string().max(5000).optional().or(z.literal('')),
   emergency_contact_name: z.string().max(255).optional().or(z.literal('')),
   emergency_contact_phone: z.string().max(32).optional().or(z.literal('')),
@@ -32,14 +38,32 @@ export const employeeFormSchema = z.object({
 
 export type EmployeeFormValues = z.infer<typeof employeeFormSchema>;
 
-export function toEmployeePayload(values: EmployeeFormValues, pinOptional = false) {
+function parseRateForPayload(
+  value: string | undefined,
+  allowNull: boolean,
+): number | null | undefined {
+  if (value === undefined || value.trim() === '') {
+    return allowNull ? null : undefined;
+  }
+  const n = Number(value);
+  if (Number.isNaN(n)) {
+    return allowNull ? null : undefined;
+  }
+  return n;
+}
+
+export function toEmployeePayload(
+  values: EmployeeFormValues,
+  options: { pinOptional?: boolean; isUpdate?: boolean } = {},
+) {
+  const { pinOptional = false, isUpdate = false } = options;
   const body: Record<string, unknown> = {
     name: values.name,
     branch_id: values.branch_id,
     job_title: values.job_title,
     employment_status: values.employment_status,
     phone: values.phone || null,
-    email: values.email || null,
+    email: values.email.trim(),
     hire_date: values.hire_date || null,
     notes: values.notes || null,
     emergency_contact_name: values.emergency_contact_name || null,
@@ -54,12 +78,18 @@ export function toEmployeePayload(values: EmployeeFormValues, pinOptional = fals
     body.pin = values.pin;
   }
 
-  if (!Number.isNaN(values.daily_rate) && values.daily_rate !== undefined) {
-    body.daily_rate = values.daily_rate;
-  }
-
-  if (!Number.isNaN(values.hourly_rate) && values.hourly_rate !== undefined) {
-    body.hourly_rate = values.hourly_rate;
+  if (isUpdate) {
+    body.daily_rate = parseRateForPayload(values.daily_rate, true);
+    body.hourly_rate = parseRateForPayload(values.hourly_rate, true);
+  } else {
+    const daily = parseRateForPayload(values.daily_rate, false);
+    const hourly = parseRateForPayload(values.hourly_rate, false);
+    if (daily !== undefined) {
+      body.daily_rate = daily;
+    }
+    if (hourly !== undefined) {
+      body.hourly_rate = hourly;
+    }
   }
 
   return body;

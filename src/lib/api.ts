@@ -77,6 +77,16 @@ export type StaffTimecard = {
   clocked_out_at: string | null;
 };
 
+export type SetupStatus = {
+  configured: boolean;
+  message: string;
+};
+
+export type SetupResponse = {
+  message: string;
+  primary_branch: { id: number; name: string };
+};
+
 function ownerAuthHeaders(): HeadersInit {
   const token = localStorage.getItem(OWNER_TOKEN_KEY);
   return token
@@ -155,6 +165,53 @@ export function setStaffToken(token: string | null): void {
   }
 }
 
+/** Public — no auth token (setup is once per server). */
+export async function fetchSetupStatus(): Promise<SetupStatus> {
+  const res = await fetch(`${API_BASE}/setup`, {
+    headers: { Accept: 'application/json' },
+  });
+  return parseJsonResponse<SetupStatus>(res);
+}
+
+export async function postRegister(body: {
+  company_name: string;
+  branch_name: string;
+  owner_name: string;
+  owner_email: string;
+  password: string;
+  password_confirmation: string;
+}): Promise<SetupResponse> {
+  const res = await fetch(`${API_BASE}/register`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  return parseJsonResponse<SetupResponse>(res);
+}
+
+/** Public — first shop + owner + main branch. */
+export async function postSetup(body: {
+  company_name: string;
+  branch_name: string;
+  owner_name: string;
+  owner_email: string;
+  password: string;
+  password_confirmation: string;
+}): Promise<SetupResponse> {
+  const res = await fetch(`${API_BASE}/setup`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  return parseJsonResponse<SetupResponse>(res);
+}
+
 export async function fetchOrderBoard(branchId: number): Promise<OrderBoard> {
   return api<OrderBoard>(`/orders/board?branch_id=${branchId}`);
 }
@@ -200,8 +257,15 @@ export async function fetchStaffOrderBoard(): Promise<OrderBoard> {
 
 export async function postStaffOrder(body: {
   fulfillment_type: 'pickup' | 'delivery';
+  customer_type?: 'guest' | 'suki';
   customer_name?: string;
-  items: Array<{ description: string; quantity?: number }>;
+  customer_phone?: string;
+  points_redeemed?: number;
+  items: Array<{
+    description: string;
+    quantity?: number;
+    unit_price_cents?: number;
+  }>;
 }): Promise<Order> {
   const res = await staffApi<{ data: Order }>('/staff/orders', {
     method: 'POST',

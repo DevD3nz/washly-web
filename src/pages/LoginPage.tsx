@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
@@ -6,6 +6,7 @@ import { Label } from '../components/ui/Label';
 import { Button } from '../components/ui/Button';
 import { AuthLayout } from '../components/layout/AuthLayout';
 import { useAuth } from '../context/AuthContext';
+import { fetchSetupStatus } from '../lib/api';
 
 export function LoginPage() {
   const { user, loading, login } = useAuth();
@@ -13,6 +14,13 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [setupAvailable, setSetupAvailable] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    void fetchSetupStatus()
+      .then((status) => setSetupAvailable(!status.configured))
+      .catch(() => setSetupAvailable(null));
+  }, []);
 
   if (!loading && user) {
     return <Navigate to="/" replace />;
@@ -78,10 +86,15 @@ export function LoginPage() {
             Staff PIN login
           </Link>
           {' · '}
-          <Link to="/setup" className="font-medium text-primary hover:underline">
-            Set up your shop
+          <Link to="/register" className="font-medium text-primary hover:underline">
+            Sign up your laundry
           </Link>
         </p>
+        {setupAvailable === false && (
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            New laundry shop? Use Sign up to create a separate account per business.
+          </p>
+        )}
       </Card>
     </AuthLayout>
   );

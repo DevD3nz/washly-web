@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Pencil, UserPlus, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -37,8 +37,8 @@ const defaultValues: EmployeeFormValues = {
   employment_status: 'active',
   hire_date: '',
   pin: '',
-  daily_rate: undefined,
-  hourly_rate: undefined,
+  daily_rate: '',
+  hourly_rate: '',
   notes: '',
   emergency_contact_name: '',
   emergency_contact_phone: '',
@@ -85,33 +85,47 @@ export function EmployeesPage() {
   const atStaffLimitForForm =
     !editingId && formBranchId > 0 && isAtStaffLimit(formBranchId);
 
+  const loadBranches = useCallback(async (): Promise<Branch[]> => {
+    const brs = await api<Branch[]>('/branches');
+    setBranches(brs);
+    return brs;
+  }, []);
+
   const load = useCallback(async () => {
     const [emps, brs] = await Promise.all([
       api<Employee[]>('/employees'),
-      api<Branch[]>('/branches'),
+      loadBranches(),
     ]);
     setEmployees(emps);
-    setBranches(brs);
     if (brs[0] && form.getValues('branch_id') === 0) {
       form.setValue('branch_id', brs[0].id);
     }
-  }, [form]);
+  }, [form, loadBranches]);
 
   useEffect(() => {
     void load().catch((e) => setError(String(e)));
   }, [load]);
 
-  function openCreate() {
+  async function openCreate() {
     setEditingId(null);
+    setError('');
+    const brs = await loadBranches().catch((e) => {
+      setError(e instanceof Error ? e.message : 'Failed to load branches');
+      return [] as Branch[];
+    });
     form.reset({
       ...defaultValues,
-      branch_id: branches[0]?.id ?? 0,
+      branch_id: brs[0]?.id ?? 0,
     });
     setShowForm(true);
   }
 
-  function openEdit(emp: Employee) {
+  async function openEdit(emp: Employee) {
     setEditingId(emp.id);
+    setError('');
+    await loadBranches().catch((e) => {
+      setError(e instanceof Error ? e.message : 'Failed to load branches');
+    });
     form.reset({
       name: emp.name,
       branch_id: emp.branch_id,
@@ -122,8 +136,8 @@ export function EmployeesPage() {
       employment_status: emp.employment_status,
       hire_date: emp.hire_date ?? '',
       pin: '',
-      daily_rate: emp.daily_rate_php ?? undefined,
-      hourly_rate: emp.hourly_rate_php ?? undefined,
+      daily_rate: emp.daily_rate_php != null ? String(emp.daily_rate_php) : '',
+      hourly_rate: emp.hourly_rate_php != null ? String(emp.hourly_rate_php) : '',
       notes: emp.notes ?? '',
       emergency_contact_name: emp.emergency_contact_name ?? '',
       emergency_contact_phone: emp.emergency_contact_phone ?? '',
@@ -144,7 +158,10 @@ export function EmployeesPage() {
       return;
     }
     try {
-      const body = toEmployeePayload(values, editingId !== null);
+      const body = toEmployeePayload(values, {
+        pinOptional: editingId !== null,
+        isUpdate: editingId !== null,
+      });
       if (editingId !== null) {
         await api(`/employees/${editingId}`, {
           method: 'PATCH',
@@ -161,6 +178,18 @@ export function EmployeesPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed');
     }
+  }
+
+  function onInvalid(errors: typeof form.formState.errors) {
+    const first =
+      errors.name?.message ??
+      errors.branch_id?.message ??
+      errors.email?.message ??
+      errors.daily_rate?.message ??
+      errors.hourly_rate?.message ??
+      errors.pin?.message ??
+      'Please fix the highlighted fields.';
+    setError(first);
   }
 
   return (
@@ -197,7 +226,10 @@ export function EmployeesPage() {
             </button>
           </div>
 
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit, onInvalid)}
+            className="space-y-4"
+          >
             <section className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-400">
                 Basic
@@ -227,17 +259,40 @@ export function EmployeesPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="branch_id">Branch *</Label>
-                  <Select
-                    id="branch_id"
-                    className="mt-1"
-                    {...form.register('branch_id', { valueAsNumber: true })}
-                  >
-                    {branches.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.name}
-                      </option>
-                    ))}
-                  </Select>
+                  <Controller
+                    name="branch_id"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select
+                        id="branch_id"
+                        className="mt-1"
+                        value={field.value > 0 ? String(field.value) : ''}
+                        onChange={(e) => {
+                          const next = Number(e.target.value);
+                          field.onChange(Number.isNaN(next) ? 0 : next);
+                        }}
+                      >
+                        <option value="" disabled>
+                          Select branch
+                        </option>
+                        {branches.map((b) => (
+                          <option key={b.id} value={String(b.id)}>
+                            {b.name}
+                          </option>
+                        ))}
+                      </Select>
+                    )}
+                  />
+                  {form.formState.errors.branch_id && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {form.formState.errors.branch_id.message}
+                    </p>
+                  )}
+                  {branches.length === 0 && (
+                    <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+                      No branches yet. Add one under Branches first.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="job_title">Role</Label>
@@ -271,8 +326,19 @@ export function EmployeesPage() {
                 <Input id="phone" inputMode="tel" placeholder="09xx…" className="mt-1" {...form.register('phone')} />
               </div>
               <div>
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" className="mt-1" {...form.register('email')} />
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  className="mt-1"
+                  {...form.register('email')}
+                />
+                {form.formState.errors.email && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {form.formState.errors.email.message}
+                  </p>
+                )}
               </div>
             </section>
 
@@ -280,14 +346,39 @@ export function EmployeesPage() {
               <p className="text-xs font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-400">
                 Pay (₱) — for Phase 6 payroll
               </p>
+              <p className="text-xs text-muted-foreground">
+                Optional — fill daily or hourly only, or both.
+              </p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="daily_rate">Daily rate</Label>
-                  <Input id="daily_rate" inputMode="decimal" className="mt-1" {...form.register('daily_rate')} />
+                  <Input
+                    id="daily_rate"
+                    inputMode="decimal"
+                    placeholder="Optional"
+                    className="mt-1"
+                    {...form.register('daily_rate')}
+                  />
+                  {form.formState.errors.daily_rate && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {form.formState.errors.daily_rate.message}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="hourly_rate">Hourly rate</Label>
-                  <Input id="hourly_rate" inputMode="decimal" className="mt-1" {...form.register('hourly_rate')} />
+                  <Input
+                    id="hourly_rate"
+                    inputMode="decimal"
+                    placeholder="Optional"
+                    className="mt-1"
+                    {...form.register('hourly_rate')}
+                  />
+                  {form.formState.errors.hourly_rate && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {form.formState.errors.hourly_rate.message}
+                    </p>
+                  )}
                 </div>
               </div>
             </section>
@@ -329,6 +420,12 @@ export function EmployeesPage() {
                 />
               </div>
             </section>
+
+            {error && (
+              <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
+                {error}
+              </p>
+            )}
 
             {atStaffLimitForForm && (
               <p className="text-sm text-amber-700 dark:text-amber-400">

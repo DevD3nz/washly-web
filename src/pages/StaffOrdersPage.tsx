@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -6,7 +6,10 @@ import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SectionHeader } from '../components/ui/SectionHeader';
+import { Select } from '../components/ui/Select';
 import { useStaffAuth } from '../context/StaffAuthContext';
+import { useCustomerLookup } from '../features/suki/hooks/useCustomerLookup';
+import type { CustomerType } from '../features/suki/types';
 import {
   fetchStaffOrderBoard,
   fetchStaffOrderReceipt,
@@ -21,6 +24,13 @@ import {
   type Order,
   type OrderBoard,
 } from '../types/order';
+
+function formatPeso(cents: number): string {
+  return `₱${(cents / 100).toLocaleString('en-PH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
 
 function formatStatusLabel(status: string): string {
   return status
@@ -86,6 +96,16 @@ function KanbanStripe({
                           {order.customer_name}
                         </p>
                       )}
+                      {order.customer_phone && (
+                        <p className="truncate text-xs text-muted-foreground">
+                          {order.customer_phone}
+                        </p>
+                      )}
+                      {order.customer?.type === 'suki' && (
+                        <Badge tone="muted" className="mt-1">
+                          Suki · {order.customer.points_balance} pts
+                        </Badge>
+                      )}
                       {order.items && order.items.length > 0 && (
                         <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
                           {order.items
@@ -139,10 +159,43 @@ export function StaffOrdersPage() {
   const [receiptBusyId, setReceiptBusyId] = useState<number | null>(null);
   const [receiptMsg, setReceiptMsg] = useState('');
 
+  const [customerType, setCustomerType] = useState<CustomerType>('guest');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [itemDescription, setItemDescription] = useState('');
+  const [unitPricePeso, setUnitPricePeso] = useState('');
+  const [pointsRedeemed, setPointsRedeemed] = useState('');
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
+
+  const { customer: lookedUp, loading: lookupLoading } = useCustomerLookup({
+    phone: customerPhone,
+    asStaff: true,
+  });
+
+  const grossCents = useMemo(() => {
+    const peso = Number.parseFloat(unitPricePeso);
+    if (!Number.isFinite(peso) || peso <= 0) {
+      return 0;
+    }
+    return Math.round(peso * 100);
+  }, [unitPricePeso]);
+
+  const maxRedeemable = useMemo(() => {
+    if (customerType !== 'suki' || !lookedUp) {
+      return 0;
+    }
+    return Math.min(lookedUp.points_balance, grossCents);
+  }, [customerType, lookedUp, grossCents]);
+
+  useEffect(() => {
+    if (lookedUp?.type === 'suki') {
+      setCustomerType('suki');
+      if (lookedUp.name) {
+        setCustomerName(lookedUp.name);
+      }
+    }
+  }, [lookedUp]);
 
   const loadBoard = useCallback(async () => {
     setLoadError('');
@@ -200,15 +253,46 @@ export function StaffOrdersPage() {
   async function onCreateOrder(e: FormEvent) {
     e.preventDefault();
     setCreateError('');
+
+    const phone = customerPhone.trim();
+    if (!phone) {
+      setCreateError('Phone is required for Guest or Suki intake.');
+      return;
+    }
+    if (customerType === 'suki' && !customerName.trim()) {
+      setCreateError('Name is required for Suki customers.');
+      return;
+    }
+
+    const redeemed = Number.parseInt(pointsRedeemed, 10);
+    const points =
+      customerType === 'suki' && Number.isFinite(redeemed) && redeemed > 0
+        ? redeemed
+        : undefined;
+
     setCreating(true);
     try {
       await postStaffOrder({
         fulfillment_type: 'pickup',
-        customer_name: customerName.trim() || undefined,
-        items: [{ description: itemDescription.trim(), quantity: 1 }],
+        customer_type: customerType,
+        customer_phone: phone,
+        customer_name:
+          customerType === 'suki' ? customerName.trim() : customerName.trim() || undefined,
+        points_redeemed: points,
+        items: [
+          {
+            description: itemDescription.trim(),
+            quantity: 1,
+            unit_price_cents: grossCents > 0 ? grossCents : undefined,
+          },
+        ],
       });
+      setCustomerPhone('');
       setCustomerName('');
       setItemDescription('');
+      setUnitPricePeso('');
+      setPointsRedeemed('');
+      setCustomerType('guest');
       await loadBoard();
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : 'Could not create order');
@@ -232,14 +316,51 @@ export function StaffOrdersPage() {
         <h2 className="text-sm font-semibold">New pickup order</h2>
         <form onSubmit={onCreateOrder} className="space-y-3">
           <div>
-            <Label htmlFor="customer_name">Customer name</Label>
-            <Input
-              id="customer_name"
+            <Label htmlFor="customer_type">Customer type</Label>
+            <Select
+              id="customer_type"
               className="mt-1"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-            />
+              value={customerType}
+              onChange={(e) => setCustomerType(e.target.value as CustomerType)}
+            >
+              <option value="guest">Guest (phone only)</option>
+              <option value="suki">Suki (name + phone · 2× points)</option>
+            </Select>
           </div>
+          <div>
+            <Label htmlFor="customer_phone">Phone</Label>
+            <Input
+              id="customer_phone"
+              required
+              className="mt-1"
+              placeholder="09XXXXXXXXX"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+            />
+            {lookupLoading && (
+              <p className="mt-1 text-xs text-muted-foreground">Looking up…</p>
+            )}
+            {lookedUp && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Found {lookedUp.type === 'suki' ? 'Suki' : 'Guest'}
+                {lookedUp.type === 'suki'
+                  ? ` · ${lookedUp.points_balance} pts (${formatPeso(lookedUp.points_balance)})`
+                  : ''}
+              </p>
+            )}
+          </div>
+          {customerType === 'suki' && (
+            <div>
+              <Label htmlFor="customer_name">Suki name</Label>
+              <Input
+                id="customer_name"
+                required
+                className="mt-1"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+              />
+            </div>
+          )}
           <div>
             <Label htmlFor="item_description">Item</Label>
             <Input
@@ -251,6 +372,35 @@ export function StaffOrdersPage() {
               onChange={(e) => setItemDescription(e.target.value)}
             />
           </div>
+          <div>
+            <Label htmlFor="unit_price">Price (₱)</Label>
+            <Input
+              id="unit_price"
+              type="number"
+              min="0"
+              step="0.01"
+              className="mt-1"
+              placeholder="e.g. 150"
+              value={unitPricePeso}
+              onChange={(e) => setUnitPricePeso(e.target.value)}
+            />
+          </div>
+          {customerType === 'suki' && maxRedeemable > 0 && (
+            <div>
+              <Label htmlFor="points_redeemed">
+                Redeem points (max {maxRedeemable} · 100 pts = ₱1)
+              </Label>
+              <Input
+                id="points_redeemed"
+                type="number"
+                min="0"
+                max={maxRedeemable}
+                className="mt-1"
+                value={pointsRedeemed}
+                onChange={(e) => setPointsRedeemed(e.target.value)}
+              />
+            </div>
+          )}
           {createError && (
             <p className="text-sm text-red-600 dark:text-red-400">{createError}</p>
           )}

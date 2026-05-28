@@ -17,6 +17,14 @@ export type FulfillmentType = 'pickup' | 'delivery';
 export type PickupStatus = (typeof PICKUP_STATUSES)[number];
 export type DeliveryStatus = (typeof DELIVERY_STATUSES)[number];
 
+export type OrderCustomerEmbed = {
+  id: number;
+  type: 'guest' | 'suki';
+  name: string | null;
+  phone: string;
+  points_balance: number;
+};
+
 export type OrderItem = {
   id: number;
   description: string;
@@ -38,6 +46,10 @@ export type Order = {
   status: string;
   customer_name: string | null;
   customer_phone: string | null;
+  points_redeemed: number | null;
+  points_accrued: number | null;
+  settled_at: string | null;
+  customer?: OrderCustomerEmbed | null;
   notes: string | null;
   items?: OrderItem[];
   branch?: OrderBranchEmbed;

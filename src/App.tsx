@@ -8,8 +8,9 @@ import { ActivityPage } from './pages/ActivityPage';
 import { BranchesPage } from './pages/BranchesPage';
 import { EmployeesPage } from './pages/EmployeesPage';
 import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 import { SetupPage } from './pages/SetupPage';
-import { OwnerHomePage } from './pages/OwnerHomePage';
+import { CommandCenterPage } from './pages/CommandCenterPage';
 import { StaffHomePage } from './pages/StaffHomePage';
 import { StaffLoginPage } from './pages/StaffLoginPage';
 import { StaffOrdersPage } from './pages/StaffOrdersPage';
@@ -54,6 +55,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/setup" element={<SetupPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/staff/login" element={<StaffLoginPage />} />
             <Route
@@ -63,7 +65,7 @@ export default function App() {
                 </Protected>
               }
             >
-              <Route index element={<OwnerHomePage />} />
+              <Route index element={<CommandCenterPage />} />
               <Route path="branches" element={<BranchesPage />} />
               <Route path="employees" element={<EmployeesPage />} />
               <Route path="activity" element={<ActivityPage />} />

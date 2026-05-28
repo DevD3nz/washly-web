@@ -15,7 +15,7 @@ export type NavItem = {
 };
 
 export const ownerNav: NavItem[] = [
-  { to: '/', label: 'Home', icon: Home, end: true },
+  { to: '/', label: 'Command Center', icon: Home, end: true },
   { to: '/branches', label: 'Branches', icon: Building2 },
   { to: '/employees', label: 'Staff', icon: Users },
   { to: '/activity', label: 'Activity', icon: Activity },
