@@ -295,6 +295,11 @@ export async function fetchStaffOrderReceipt(
   return staffApi<OrderReceipt>(`/staff/orders/${orderId}/receipt`);
 }
 
+export async function fetchStaffOpenTimecard(): Promise<StaffTimecard | null> {
+  const res = await staffApi<{ timecard: StaffTimecard | null }>('/staff/clock');
+  return res.timecard;
+}
+
 export async function staffClock(
   action: 'clock_in' | 'clock_out',
 ): Promise<StaffTimecard> {

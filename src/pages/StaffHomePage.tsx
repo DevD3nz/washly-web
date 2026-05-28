@@ -3,33 +3,56 @@ import { Card } from '../components/ui/Card';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Button } from '../components/ui/Button';
 import { useStaffAuth } from '../context/StaffAuthContext';
-import { staffClock, type StaffTimecard } from '../lib/api';
+import { fetchStaffOpenTimecard, staffClock, type StaffTimecard } from '../lib/api';
 
 export function StaffHomePage() {
   const { employee } = useStaffAuth();
   const [timecard, setTimecard] = useState<StaffTimecard | null>(null);
+  const [loadingTimecard, setLoadingTimecard] = useState(true);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
   const isClockedIn =
     timecard?.clocked_in_at != null && timecard.clocked_out_at == null;
 
-  const onClock = useCallback(async (action: 'clock_in' | 'clock_out') => {
-    setBusy(true);
+  const loadTimecard = useCallback(async () => {
+    setLoadingTimecard(true);
     setError('');
     try {
-      const tc = await staffClock(action);
-      setTimecard(tc);
+      const open = await fetchStaffOpenTimecard();
+      setTimecard(open);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Clock action failed');
+      setTimecard(null);
+      setError(e instanceof Error ? e.message : 'Could not load timecard');
     } finally {
-      setBusy(false);
+      setLoadingTimecard(false);
     }
   }, []);
 
   useEffect(() => {
-    setTimecard(null);
-  }, [employee?.id]);
+    if (employee) {
+      void loadTimecard();
+    } else {
+      setTimecard(null);
+      setLoadingTimecard(false);
+    }
+  }, [employee, loadTimecard]);
+
+  const onClock = useCallback(
+    async (action: 'clock_in' | 'clock_out') => {
+      setBusy(true);
+      setError('');
+      try {
+        const tc = await staffClock(action);
+        setTimecard(tc);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Clock action failed');
+      } finally {
+        setBusy(false);
+      }
+    },
+    [],
+  );
 
   return (
     <div className="space-y-6">
@@ -45,15 +68,17 @@ export function StaffHomePage() {
       <Card className="space-y-4 p-4">
         <h2 className="text-sm font-semibold text-foreground">Timecard</h2>
         <p className="text-sm text-muted-foreground">
-          {isClockedIn
-            ? 'You are clocked in for today.'
-            : 'Clock in when your shift starts, clock out when you leave.'}
+          {loadingTimecard
+            ? 'Loading shift status…'
+            : isClockedIn
+              ? 'You are clocked in.'
+              : 'Clock in when your shift starts, clock out when you leave.'}
         </p>
         {timecard?.clocked_in_at && (
           <p className="text-xs text-muted-foreground">
-            In: {new Date(timecard.clocked_in_at).toLocaleTimeString()}
+            In: {new Date(timecard.clocked_in_at).toLocaleString()}
             {timecard.clocked_out_at &&
-              ` · Out: ${new Date(timecard.clocked_out_at).toLocaleTimeString()}`}
+              ` · Out: ${new Date(timecard.clocked_out_at).toLocaleString()}`}
           </p>
         )}
         {error && (
@@ -62,7 +87,7 @@ export function StaffHomePage() {
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
-            disabled={busy || isClockedIn}
+            disabled={busy || loadingTimecard || isClockedIn}
             onClick={() => void onClock('clock_in')}
           >
             Clock in
@@ -70,7 +95,7 @@ export function StaffHomePage() {
           <Button
             type="button"
             variant="secondary"
-            disabled={busy || !isClockedIn}
+            disabled={busy || loadingTimecard || !isClockedIn}
             onClick={() => void onClock('clock_out')}
           >
             Clock out
