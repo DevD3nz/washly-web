@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { isStaffPortalRole, subscriptionStatusLabel } from '../lib/roles';
 import { BottomNav } from './BottomNav';
 import { SidebarNav } from './SidebarNav';
 import { ThemeToggle } from './ThemeToggle';
@@ -7,7 +8,7 @@ import { Button } from './ui/Button';
 
 export function AppShell() {
   const { user, account, logout } = useAuth();
-  const variant = user?.role === 'staff' ? 'staff' : 'owner';
+  const variant = isStaffPortalRole(user?.role) ? 'staff' : 'owner';
 
   return (
     <div className="flex min-h-dvh bg-background">
@@ -48,7 +49,7 @@ export function AppShell() {
           {account?.subscription && (
             <p className="mx-auto mt-1 max-w-lg text-xs text-muted-foreground sm:max-w-xl md:max-w-2xl lg:max-w-none lg:px-0">
               {account.subscription.plan?.name ?? 'Plan'} ·{' '}
-              <span className="capitalize">{account.subscription.status}</span>
+              {subscriptionStatusLabel(account.subscription.status)}
             </p>
           )}
         </header>

@@ -31,11 +31,6 @@ export function BottomNav({ variant }: Props) {
           {item.label}
         </NavLink>
       ))}
-      {variant === 'staff' && (
-        <span className="flex flex-1 flex-col items-center gap-0.5 py-2 text-xs text-muted-foreground/50">
-          Phase 2
-        </span>
-      )}
     </nav>
   );
 }

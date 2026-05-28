@@ -1,4 +1,6 @@
 export type JobTitle =
+  | 'attendant'
+  | 'rider'
   | 'washer'
   | 'ironer'
   | 'front_desk'
@@ -28,12 +30,14 @@ export type Employee = {
 };
 
 export const JOB_TITLE_LABELS: Record<JobTitle, string> = {
+  attendant: 'Branch attendant',
+  rider: 'Delivery rider',
   washer: 'Washer',
   ironer: 'Ironer / Finisher',
   front_desk: 'Front desk',
   driver: 'Delivery driver',
   supervisor: 'Supervisor',
-  staff: 'General staff',
+  staff: 'General staff (legacy)',
   other: 'Other',
 };
 

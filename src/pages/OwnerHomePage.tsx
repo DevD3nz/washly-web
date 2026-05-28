@@ -15,10 +15,11 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { SectionHeader } from '../components/ui/SectionHeader';
 import { useAuth } from '../context/AuthContext';
 import { api, fetchOrdersForBranch } from '../lib/api';
+import { subscriptionStatusLabel } from '../lib/roles';
 import { isOrderCreatedToday } from '../types/order';
 
 type Branch = { id: number; name: string };
-type Employee = { id: number; employment_status: string };
+type Employee = { id: number; branch_id: number; employment_status: string };
 type AuditRow = {
   id: number;
   action: string;
@@ -35,6 +36,7 @@ export function OwnerHomePage() {
   const [loading, setLoading] = useState(true);
 
   const maxBranches = account?.subscription.plan?.max_branches;
+  const maxStaffPerBranch = account?.subscription.plan?.max_staff_per_branch;
   const trialEnds = account?.subscription.trial_ends_at;
   const planName = account?.subscription.plan?.name ?? 'Plan';
 
@@ -92,7 +94,7 @@ export function OwnerHomePage() {
 
   const trialHint = trialEnds
     ? `Trial ends ${new Date(trialEnds).toLocaleDateString()}`
-  : `${planName} · ${account?.subscription.status ?? ''}`;
+    : `${planName} · ${account?.subscription.status ?? ''}`;
 
   return (
     <div className="space-y-6">
@@ -123,7 +125,11 @@ export function OwnerHomePage() {
         <MetricCard
           label="Active staff"
           value={loading ? '…' : staffCount}
-          hint="With PIN for Phase 2"
+          hint={
+            maxStaffPerBranch != null
+              ? `Max ${maxStaffPerBranch} per branch`
+              : 'PIN counter login'
+          }
           icon={Users}
         />
         <MetricCard
@@ -139,7 +145,7 @@ export function OwnerHomePage() {
         <MetricCard
           label="Plan"
           value={planName}
-          hint={account?.subscription.status}
+          hint={subscriptionStatusLabel(account?.subscription.status ?? '')}
           icon={Activity}
         />
       </div>

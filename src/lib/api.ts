@@ -7,13 +7,22 @@ const API_BASE =
 const OWNER_TOKEN_KEY = 'washly_token';
 const STAFF_TOKEN_KEY = 'washly_staff_token';
 
+export type UserRole = 'owner' | 'manager' | 'attendant' | 'rider';
+
+export type SubscriptionStatus =
+  | 'trial'
+  | 'payment_pending'
+  | 'active'
+  | 'grace'
+  | 'suspended';
+
 export type ApiUser = {
   id: number;
   account_id: number;
   branch_id: number | null;
   name: string;
   email: string;
-  role: 'owner' | 'manager' | 'staff';
+  role: UserRole;
 };
 
 export type StaffEmployee = {
@@ -29,13 +38,15 @@ export type AccountInfo = {
   id: number;
   company_name: string;
   subscription: {
-    status: string;
+    status: SubscriptionStatus | string;
     trial_ends_at: string | null;
+    subscription_ends_at?: string | null;
     plan: {
       slug: string;
       name: string;
       price_label: string;
       max_branches: number | null;
+      max_staff_per_branch: number | null;
     } | null;
   };
 };

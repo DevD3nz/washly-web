@@ -11,6 +11,7 @@ import { Label } from '../components/ui/Label';
 import { Select } from '../components/ui/Select';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
+import { canManageBranches } from '../lib/roles';
 import {
   employeeFormSchema,
   toEmployeePayload,
@@ -32,7 +33,7 @@ const defaultValues: EmployeeFormValues = {
   employee_code: '',
   phone: '',
   email: '',
-  job_title: 'staff',
+  job_title: 'attendant',
   employment_status: 'active',
   hire_date: '',
   pin: '',
@@ -52,18 +53,37 @@ function statusTone(status: EmploymentStatus): 'success' | 'warning' | 'muted' {
 }
 
 export function EmployeesPage() {
-  const { user } = useAuth();
-  const canEdit = user?.role === 'owner' || user?.role === 'manager';
+  const { user, account } = useAuth();
+  const canEdit = canManageBranches(user?.role);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [error, setError] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
 
+  const maxStaffPerBranch = account?.subscription.plan?.max_staff_per_branch;
+
+  function activeCountForBranch(branchId: number): number {
+    return employees.filter(
+      (e) => e.branch_id === branchId && e.employment_status === 'active',
+    ).length;
+  }
+
+  function isAtStaffLimit(branchId: number): boolean {
+    return (
+      maxStaffPerBranch != null &&
+      activeCountForBranch(branchId) >= maxStaffPerBranch
+    );
+  }
+
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeFormSchema),
     defaultValues,
   });
+
+  const formBranchId = form.watch('branch_id');
+  const atStaffLimitForForm =
+    !editingId && formBranchId > 0 && isAtStaffLimit(formBranchId);
 
   const load = useCallback(async () => {
     const [emps, brs] = await Promise.all([
@@ -147,7 +167,11 @@ export function EmployeesPage() {
     <div className="space-y-4">
       <PageHeader
         title="Staff"
-        description="Profiles, PIN, pay rates — Phase 2 timecards"
+        description={
+          maxStaffPerBranch != null
+            ? `Branch attendants & riders · up to ${maxStaffPerBranch} active per branch`
+            : 'Branch attendants & riders · PIN counter login'
+        }
         action={
           canEdit ? (
             <Button type="button" size="sm" onClick={openCreate}>
@@ -306,7 +330,18 @@ export function EmployeesPage() {
               </div>
             </section>
 
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+            {atStaffLimitForForm && (
+              <p className="text-sm text-amber-700 dark:text-amber-400">
+                Staff limit reached for this branch ({maxStaffPerBranch} active).
+                Upgrade to Premium for unlimited staff.
+              </p>
+            )}
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={form.formState.isSubmitting || atStaffLimitForForm}
+            >
               {form.formState.isSubmitting ? 'Saving…' : editingId ? 'Save changes' : 'Create employee'}
             </Button>
           </form>

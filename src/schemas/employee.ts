@@ -7,6 +7,8 @@ export const employeeFormSchema = z.object({
   phone: z.string().max(32).optional().or(z.literal('')),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   job_title: z.enum([
+    'attendant',
+    'rider',
     'washer',
     'ironer',
     'front_desk',

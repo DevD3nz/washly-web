@@ -40,11 +40,6 @@ export function SidebarNav({ variant, companyName }: Props) {
             {item.label}
           </NavLink>
         ))}
-        {variant === 'staff' && (
-          <p className="mt-2 px-3 text-xs text-muted-foreground">
-            Kanban — Phase 2
-          </p>
-        )}
       </nav>
     </aside>
   );

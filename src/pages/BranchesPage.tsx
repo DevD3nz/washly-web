@@ -5,6 +5,7 @@ import { Input } from '../components/ui/Input';
 import { PageHeader } from '../components/ui/PageHeader';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
+import { canManageBranches } from '../lib/roles';
 
 type Branch = {
   id: number;
@@ -14,11 +15,19 @@ type Branch = {
 };
 
 export function BranchesPage() {
-  const { user } = useAuth();
-  const canEdit = user?.role === 'owner' || user?.role === 'manager';
+  const { user, account } = useAuth();
+  const canEdit = canManageBranches(user?.role);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [name, setName] = useState('');
   const [error, setError] = useState('');
+
+  const maxBranches = account?.subscription.plan?.max_branches;
+  const branchCountLabel =
+    maxBranches != null
+      ? `${branches.length} / ${maxBranches}`
+      : String(branches.length);
+  const atBranchLimit =
+    maxBranches != null && branches.length >= maxBranches;
 
   const load = useCallback(async () => {
     const data = await api<Branch[]>('/branches');
@@ -31,6 +40,9 @@ export function BranchesPage() {
 
   async function onAdd(e: FormEvent) {
     e.preventDefault();
+    if (atBranchLimit) {
+      return;
+    }
     setError('');
     try {
       await api('/branches', {
@@ -48,7 +60,7 @@ export function BranchesPage() {
     <div className="space-y-4">
       <PageHeader
         title="Branches"
-        description="Shop locations · plan limit applies"
+        description={`Shop locations · ${branchCountLabel} on plan`}
       />
 
       {canEdit && (
@@ -59,11 +71,19 @@ export function BranchesPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            disabled={atBranchLimit}
           />
-          <Button type="submit" className="shrink-0">
+          <Button type="submit" className="shrink-0" disabled={atBranchLimit}>
             Add
           </Button>
         </form>
+      )}
+
+      {atBranchLimit && canEdit && (
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          Branch limit reached for your plan. Upgrade to Premium for unlimited
+          branches.
+        </p>
       )}
 
       {error && (
