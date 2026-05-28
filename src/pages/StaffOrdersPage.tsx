@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Badge } from '../components/ui/Badge';
+import { RefreshCw } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import { PageHeader } from '../components/ui/PageHeader';
-import { SectionHeader } from '../components/ui/SectionHeader';
 import { Select } from '../components/ui/Select';
+import { cn } from '../lib/cn';
 import { useStaffAuth } from '../context/StaffAuthContext';
+import { OrderKanbanBoard } from '../features/orders/components/OrderKanbanBoard';
+import { formatPeso } from '../features/orders/orderBoardUi';
 import { useCustomerLookup } from '../features/suki/hooks/useCustomerLookup';
 import type { CustomerType } from '../features/suki/types';
 import {
@@ -16,157 +18,40 @@ import {
   postStaffOrder,
   postStaffOrderStatus,
 } from '../lib/api';
-import { cn } from '../lib/cn';
 import {
-  DELIVERY_STATUSES,
+  DELIVERY_DISPATCH_STATUSES,
   nextOrderStatus,
   PICKUP_STATUSES,
+  type FulfillmentType,
   type Order,
   type OrderBoard,
 } from '../types/order';
 
-function formatPeso(cents: number): string {
-  return `₱${(cents / 100).toLocaleString('en-PH', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
-
-function formatStatusLabel(status: string): string {
-  return status
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-type KanbanStripeProps = {
-  title: string;
-  statuses: readonly string[];
-  buckets: Record<string, Order[]>;
-  onAdvance: (order: Order) => Promise<void>;
-  onCopyReceipt: (order: Order) => Promise<void>;
-  busyId: number | null;
-  receiptBusyId: number | null;
-};
-
-function KanbanStripe({
-  title,
-  statuses,
-  buckets,
-  onAdvance,
-  onCopyReceipt,
-  busyId,
-  receiptBusyId,
-}: KanbanStripeProps) {
-  const colCount = statuses.length >= 5 ? 'lg:grid-cols-5' : 'lg:grid-cols-3';
-
-  return (
-    <section className="space-y-3">
-      <SectionHeader title={title} />
-      <div
-        className={cn(
-          '-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 lg:mx-0 lg:grid lg:gap-4 lg:overflow-visible lg:px-0 lg:pb-0',
-          colCount,
-        )}
-      >
-        {statuses.map((status) => {
-          const list = buckets[status] ?? [];
-          return (
-            <div
-              key={status}
-              className="flex w-[min(82vw,18rem)] shrink-0 flex-col gap-2 lg:min-w-0 lg:w-auto"
-            >
-              <div className="flex items-center gap-2 px-0.5">
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {formatStatusLabel(status)}
-                </h4>
-                <Badge tone="muted">{list.length}</Badge>
-              </div>
-              <div className="flex flex-col gap-2">
-                {list.map((order) => {
-                  const next = nextOrderStatus(order);
-                  const busy = busyId === order.id;
-                  const receiptBusy = receiptBusyId === order.id;
-                  return (
-                    <Card key={order.id} className="min-h-[4.5rem] p-3 shadow-sm">
-                      <p className="text-xs font-semibold text-foreground">
-                        {order.order_number ?? `#${order.id}`}
-                      </p>
-                      {order.customer_name && (
-                        <p className="mt-0.5 truncate text-sm text-muted-foreground">
-                          {order.customer_name}
-                        </p>
-                      )}
-                      {order.customer_phone && (
-                        <p className="truncate text-xs text-muted-foreground">
-                          {order.customer_phone}
-                        </p>
-                      )}
-                      {order.customer?.type === 'suki' && (
-                        <Badge tone="muted" className="mt-1">
-                          Suki · {order.customer.points_balance} pts
-                        </Badge>
-                      )}
-                      {order.items && order.items.length > 0 && (
-                        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                          {order.items
-                            .map((i) => `${i.quantity}× ${i.description}`)
-                            .join(' · ')}
-                        </p>
-                      )}
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {next ? (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="secondary"
-                            disabled={busy || receiptBusy}
-                            onClick={() => void onAdvance(order)}
-                          >
-                            {busy ? '…' : `→ ${formatStatusLabel(next)}`}
-                          </Button>
-                        ) : (
-                          <span className="text-[10px] text-muted-foreground">
-                            Done
-                          </span>
-                        )}
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          disabled={busy || receiptBusy}
-                          onClick={() => void onCopyReceipt(order)}
-                        >
-                          {receiptBusy ? '…' : 'Receipt'}
-                        </Button>
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
 export function StaffOrdersPage() {
   const { employee } = useStaffAuth();
   const [board, setBoard] = useState<OrderBoard | null>(null);
+  const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [busyId, setBusyId] = useState<number | null>(null);
   const [receiptBusyId, setReceiptBusyId] = useState<number | null>(null);
   const [receiptMsg, setReceiptMsg] = useState('');
 
+  const [fulfillmentType, setFulfillmentType] = useState<FulfillmentType>('pickup');
   const [customerType, setCustomerType] = useState<CustomerType>('guest');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerName, setCustomerName] = useState('');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
   const [itemDescription, setItemDescription] = useState('');
   const [unitPricePeso, setUnitPricePeso] = useState('');
   const [pointsRedeemed, setPointsRedeemed] = useState('');
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
+
+  const isDelivery = fulfillmentType === 'delivery';
+
+  const intakeHint = isDelivery
+    ? 'Guest or Suki intake · lands in Received (production board), then Out when ready'
+    : 'Guest or Suki intake · lands in Received (production board)';
 
   const { customer: lookedUp, loading: lookupLoading } = useCustomerLookup({
     phone: customerPhone,
@@ -199,12 +84,15 @@ export function StaffOrdersPage() {
 
   const loadBoard = useCallback(async () => {
     setLoadError('');
+    setLoading(true);
     try {
       const data = await fetchStaffOrderBoard();
       setBoard(data);
     } catch (e) {
       setBoard(null);
       setLoadError(e instanceof Error ? e.message : 'Failed to load board');
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -242,9 +130,7 @@ export function StaffOrdersPage() {
       await navigator.clipboard.writeText(receipt.receipt_url);
       setReceiptMsg(`Copied link for ${receipt.order_number}`);
     } catch (e) {
-      setLoadError(
-        e instanceof Error ? e.message : 'Could not copy receipt link',
-      );
+      setLoadError(e instanceof Error ? e.message : 'Could not copy receipt link');
     } finally {
       setReceiptBusyId(null);
     }
@@ -263,22 +149,25 @@ export function StaffOrdersPage() {
       setCreateError('Name is required for Suki customers.');
       return;
     }
+    if (isDelivery && !deliveryAddress.trim()) {
+      setCreateError('Delivery address is required for delivery orders.');
+      return;
+    }
 
     const redeemed = Number.parseInt(pointsRedeemed, 10);
     const points =
-      customerType === 'suki' && Number.isFinite(redeemed) && redeemed > 0
-        ? redeemed
-        : undefined;
+      customerType === 'suki' && Number.isFinite(redeemed) && redeemed > 0 ? redeemed : undefined;
 
     setCreating(true);
     try {
       await postStaffOrder({
-        fulfillment_type: 'pickup',
+        fulfillment_type: fulfillmentType,
         customer_type: customerType,
         customer_phone: phone,
         customer_name:
           customerType === 'suki' ? customerName.trim() : customerName.trim() || undefined,
         points_redeemed: points,
+        notes: isDelivery ? deliveryAddress.trim() : undefined,
         items: [
           {
             description: itemDescription.trim(),
@@ -289,6 +178,7 @@ export function StaffOrdersPage() {
       });
       setCustomerPhone('');
       setCustomerName('');
+      setDeliveryAddress('');
       setItemDescription('');
       setUnitPricePeso('');
       setPointsRedeemed('');
@@ -302,19 +192,66 @@ export function StaffOrdersPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Orders"
-        description={
-          employee?.branch?.name
-            ? `${employee.branch.name} · Tap advance or copy receipt link`
-            : 'Kanban for your branch'
-        }
-      />
+    <div className="min-w-0 space-y-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <PageHeader
+          title="Orders"
+          description={
+            employee?.branch?.name
+              ? `${employee.branch.name} · Swipe columns on phone, full board on laptop`
+              : 'Branch order board'
+          }
+        />
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          className="shrink-0"
+          disabled={loading}
+          onClick={() => void loadBoard()}
+        >
+          <RefreshCw className={loading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
+          Refresh
+        </Button>
+      </div>
 
-      <Card className="space-y-4 p-4">
-        <h2 className="text-sm font-semibold">New pickup order</h2>
-        <form onSubmit={onCreateOrder} className="space-y-3">
+      <Card className="overflow-hidden p-0">
+        <div className="border-b border-border bg-muted/40 px-4 py-3">
+          <h2 className="text-sm font-semibold">New order</h2>
+          <p className="text-xs text-muted-foreground">{intakeHint}</p>
+        </div>
+        <form onSubmit={onCreateOrder} className="grid gap-3 p-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Label>Fulfillment</Label>
+            <div className="mt-1 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                className={cn(
+                  'rounded-xl border px-3 py-2.5 text-left text-sm transition-colors',
+                  fulfillmentType === 'pickup'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border bg-card text-muted-foreground hover:bg-muted/50',
+                )}
+                onClick={() => setFulfillmentType('pickup')}
+              >
+                <span className="font-semibold">Pickup</span>
+                <span className="mt-0.5 block text-xs opacity-80">Customer collects at branch</span>
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  'rounded-xl border px-3 py-2.5 text-left text-sm transition-colors',
+                  fulfillmentType === 'delivery'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border bg-card text-muted-foreground hover:bg-muted/50',
+                )}
+                onClick={() => setFulfillmentType('delivery')}
+              >
+                <span className="font-semibold">Delivery</span>
+                <span className="mt-0.5 block text-xs opacity-80">Rider delivers to customer</span>
+              </button>
+            </div>
+          </div>
           <div>
             <Label htmlFor="customer_type">Customer type</Label>
             <Select
@@ -361,6 +298,24 @@ export function StaffOrdersPage() {
               />
             </div>
           )}
+          {isDelivery && (
+            <div className="sm:col-span-2">
+              <Label htmlFor="delivery_address">Delivery address</Label>
+              <textarea
+                id="delivery_address"
+                required
+                rows={2}
+                className={cn(
+                  'mt-1 flex w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-card-foreground',
+                  '[box-shadow:var(--shadow-xs)] placeholder:text-muted-foreground',
+                  'focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/20',
+                )}
+                placeholder="Street, barangay, landmarks…"
+                value={deliveryAddress}
+                onChange={(e) => setDeliveryAddress(e.target.value)}
+              />
+            </div>
+          )}
           <div>
             <Label htmlFor="item_description">Item</Label>
             <Input
@@ -386,7 +341,7 @@ export function StaffOrdersPage() {
             />
           </div>
           {customerType === 'suki' && maxRedeemable > 0 && (
-            <div>
+            <div className="sm:col-span-2">
               <Label htmlFor="points_redeemed">
                 Redeem points (max {maxRedeemable} · 100 pts = ₱1)
               </Label>
@@ -402,35 +357,48 @@ export function StaffOrdersPage() {
             </div>
           )}
           {createError && (
-            <p className="text-sm text-red-600 dark:text-red-400">{createError}</p>
+            <p className="text-sm text-red-600 sm:col-span-2 dark:text-red-400">{createError}</p>
           )}
-          <Button type="submit" disabled={creating}>
-            {creating ? 'Creating…' : 'Create order'}
-          </Button>
+          <div className="sm:col-span-2">
+            <Button type="submit" disabled={creating} className="w-full sm:w-auto">
+              {creating ? 'Creating…' : isDelivery ? 'Create delivery order' : 'Create pickup order'}
+            </Button>
+          </div>
         </form>
       </Card>
 
       {loadError && (
-        <p className="text-sm text-red-600 dark:text-red-400">{loadError}</p>
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400">
+          {loadError}
+        </div>
       )}
       {receiptMsg && (
-        <p className="text-sm text-green-700 dark:text-green-400">{receiptMsg}</p>
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
+          {receiptMsg}
+        </div>
+      )}
+
+      {loading && !board && (
+        <Card className="px-4 py-10 text-center text-sm text-muted-foreground">Loading board…</Card>
       )}
 
       {board && (
-        <div className="space-y-8">
-          <KanbanStripe
-            title="Pickup"
+        <div className="space-y-5">
+          <OrderKanbanBoard
+            title="Production"
+            subtitle="All orders · received → washing → drying → ready · pickup claims at end"
             statuses={PICKUP_STATUSES}
             buckets={board.pickup}
             onAdvance={onAdvance}
             onCopyReceipt={onCopyReceipt}
             busyId={busyId}
             receiptBusyId={receiptBusyId}
+            showFulfillmentBadge
           />
-          <KanbanStripe
-            title="Delivery"
-            statuses={DELIVERY_STATUSES}
+          <OrderKanbanBoard
+            title="Delivery dispatch"
+            subtitle="After ready · out for delivery → delivered"
+            statuses={DELIVERY_DISPATCH_STATUSES}
             buckets={board.delivery}
             onAdvance={onAdvance}
             onCopyReceipt={onCopyReceipt}

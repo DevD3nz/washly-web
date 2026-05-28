@@ -12,12 +12,12 @@ export function StaffShell() {
     <div className="flex min-h-dvh bg-background">
       <SidebarNav variant="staff" companyName={employee?.branch?.name} />
 
-      <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
+      <div className="flex min-h-dvh min-w-0 flex-1 flex-col overflow-x-hidden">
         {/* Top stripe */}
         <div className="h-0.5 bg-gradient-to-r from-primary via-teal-400 to-primary/40" />
 
         <header className="sticky top-0.5 z-10 border-b border-border bg-card/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/85 md:px-6 lg:px-8">
-          <div className="mx-auto flex w-full max-w-lg items-center justify-between gap-2 sm:max-w-xl md:max-w-2xl lg:max-w-none">
+          <div className="mx-auto flex w-full min-w-0 max-w-full items-center justify-between gap-2 lg:max-w-none">
             {/* Mobile */}
             <div className="min-w-0 flex-1 lg:hidden">
               <div className="flex items-center gap-2">
@@ -55,8 +55,8 @@ export function StaffShell() {
           </div>
         </header>
 
-        <main className="flex-1 px-4 pb-28 pt-5 md:px-6 md:pb-28 lg:px-8 lg:pb-8">
-          <div className="mx-auto w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-5xl xl:max-w-6xl">
+        <main className="flex-1 min-w-0 overflow-x-hidden px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-5 md:px-6 lg:px-8 lg:pb-8">
+          <div className="mx-auto w-full min-w-0 max-w-full lg:max-w-6xl xl:max-w-[90rem]">
             <Outlet />
           </div>
         </main>

@@ -95,8 +95,11 @@ html.dark {
 
 body {
   min-height: 100dvh;
+  overflow-x: hidden;
   @apply bg-background text-foreground antialiased;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* smooth scrolling */
@@ -119,4 +122,95 @@ select option {
 .dark select option {
   background-color: #ffffff;
   color: #0d1117;
+}
+
+/* PWA kanban: outer clips width, inner track grows — reliable swipe/scroll on iOS + simulators */
+.kanban-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scroll-behavior: auto;
+  touch-action: manipulation;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.kanban-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.kanban-scroll-track {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  flex-wrap: nowrap;
+  gap: 0.75rem;
+  padding: 1rem 1rem 1.25rem;
+}
+
+.kanban-column-scroll {
+  flex: 0 0 auto;
+  scroll-snap-align: center;
+}
+
+/* Mobile/tablet: horizontal scroll. Desktop: static grid. */
+.kanban-board-controls {
+  display: flex;
+}
+
+.kanban-board-wide .kanban-board-controls,
+.kanban-board-narrow .kanban-board-controls {
+  display: flex;
+}
+
+@media (min-width: 1024px) {
+  .kanban-board-wide .kanban-board-controls {
+    display: none;
+  }
+
+  .kanban-board-wide .kanban-scroll {
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .kanban-board-wide .kanban-scroll-track {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding-bottom: 1rem;
+  }
+
+  .kanban-board-wide .kanban-column-scroll {
+    width: auto;
+    max-width: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .kanban-board-narrow .kanban-board-controls {
+    display: none;
+  }
+
+  .kanban-board-narrow .kanban-scroll {
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .kanban-board-narrow .kanban-scroll-track {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding-bottom: 1rem;
+  }
+
+  .kanban-board-narrow .kanban-column-scroll {
+    width: auto;
+    max-width: none;
+  }
 }

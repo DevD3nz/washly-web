@@ -252,7 +252,7 @@ export function CommandCenterPage() {
         <Card className="space-y-2 p-3">
           <ToggleRow
             label="Staff inventory editing"
-            description="Allow attendants to edit inventory (Phase 5)"
+            description="Allow attendants to edit inventory"
             checked={data?.settings.staff_inventory_editing ?? true}
             disabled={toggleBusy || loading}
             onChange={onToggle('staff_inventory_editing')}

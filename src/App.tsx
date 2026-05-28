@@ -11,6 +11,8 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { SetupPage } from './pages/SetupPage';
 import { CommandCenterPage } from './pages/CommandCenterPage';
+import { InventoryPage } from './pages/InventoryPage';
+import { StaffInventoryPage } from './pages/StaffInventoryPage';
 import { ExpensesPage } from './pages/ExpensesPage';
 import { StaffHomePage } from './pages/StaffHomePage';
 import { StaffExpensesPage } from './pages/StaffExpensesPage';
@@ -71,6 +73,7 @@ export default function App() {
               <Route path="branches" element={<BranchesPage />} />
               <Route path="employees" element={<EmployeesPage />} />
               <Route path="expenses" element={<ExpensesPage />} />
+              <Route path="inventory" element={<InventoryPage />} />
               <Route path="activity" element={<ActivityPage />} />
             </Route>
             <Route
@@ -82,6 +85,7 @@ export default function App() {
             >
               <Route path="staff" element={<StaffHomePage />} />
               <Route path="staff/orders" element={<StaffOrdersPage />} />
+              <Route path="staff/inventory" element={<StaffInventoryPage />} />
               <Route path="staff/expenses" element={<StaffExpensesPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

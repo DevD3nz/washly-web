@@ -261,6 +261,7 @@ export async function postStaffOrder(body: {
   customer_name?: string;
   customer_phone?: string;
   points_redeemed?: number;
+  notes?: string;
   items: Array<{
     description: string;
     quantity?: number;

@@ -1,21 +1,17 @@
-export const PICKUP_STATUSES = [
-  'received',
-  'washing',
-  'drying',
-  'ready',
-  'claimed',
-] as const;
+export const PRODUCTION_STATUSES = ['received', 'washing', 'drying', 'ready'] as const;
 
-export const DELIVERY_STATUSES = [
-  'for_delivery',
-  'out',
-  'delivered',
-] as const;
+export const PICKUP_STATUSES = [...PRODUCTION_STATUSES, 'claimed'] as const;
+
+/** Full backend chain for delivery orders. */
+export const DELIVERY_FLOW_STATUSES = [...PRODUCTION_STATUSES, 'out', 'delivered'] as const;
+
+/** Delivery dispatch board columns (after production / ready). */
+export const DELIVERY_DISPATCH_STATUSES = ['out', 'delivered'] as const;
 
 export type FulfillmentType = 'pickup' | 'delivery';
 
 export type PickupStatus = (typeof PICKUP_STATUSES)[number];
-export type DeliveryStatus = (typeof DELIVERY_STATUSES)[number];
+export type DeliveryDispatchStatus = (typeof DELIVERY_DISPATCH_STATUSES)[number];
 
 export type OrderCustomerEmbed = {
   id: number;
@@ -66,7 +62,7 @@ export type OrderBoard = {
 export function statusesForFulfillment(
   fulfillmentType: FulfillmentType,
 ): readonly string[] {
-  return fulfillmentType === 'pickup' ? PICKUP_STATUSES : DELIVERY_STATUSES;
+  return fulfillmentType === 'pickup' ? PICKUP_STATUSES : DELIVERY_FLOW_STATUSES;
 }
 
 export function nextOrderStatus(order: Pick<Order, 'fulfillment_type' | 'status'>): string | null {
