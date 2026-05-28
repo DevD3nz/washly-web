@@ -1,6 +1,7 @@
 import {
   Activity,
   Building2,
+  HandCoins,
   Home,
   Package,
   Users,
@@ -18,10 +19,12 @@ export const ownerNav: NavItem[] = [
   { to: '/', label: 'Command Center', icon: Home, end: true },
   { to: '/branches', label: 'Branches', icon: Building2 },
   { to: '/employees', label: 'Staff', icon: Users },
+  { to: '/expenses', label: 'Expenses', icon: HandCoins },
   { to: '/activity', label: 'Activity', icon: Activity },
 ];
 
 export const staffNav: NavItem[] = [
   { to: '/staff', label: 'Home', icon: Home, end: true },
   { to: '/staff/orders', label: 'Orders', icon: Package },
+  { to: '/staff/expenses', label: 'Expenses', icon: HandCoins },
 ];

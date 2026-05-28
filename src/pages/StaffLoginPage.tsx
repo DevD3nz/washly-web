@@ -6,6 +6,7 @@ import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import { useStaffAuth } from '../context/StaffAuthContext';
+import { cn } from '../lib/cn';
 
 export function StaffLoginPage() {
   const { employee, loading, login } = useStaffAuth();
@@ -27,16 +28,9 @@ export function StaffLoginPage() {
     try {
       const branch = Number(branchId);
       if (useEmployeeId) {
-        await login({
-          branch_id: branch,
-          employee_id: Number(employeeId),
-          pin,
-        });
+        await login({ branch_id: branch, employee_id: Number(employeeId), pin });
       } else {
-        await login({
-          branch_id: branch,
-          pin,
-        });
+        await login({ branch_id: branch, pin });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
@@ -48,47 +42,41 @@ export function StaffLoginPage() {
   return (
     <AuthLayout>
       <Card className="p-6 sm:p-8">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          Staff PIN
-        </h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Staff PIN</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Sign in with branch + PIN, or branch + employee # + PIN.
+          Sign in with your branch and PIN
         </p>
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-4">
-          <div className="flex gap-2 text-sm">
+        {/* Mode toggle */}
+        <div className="mt-5 flex rounded-xl border border-border bg-muted p-1">
+          {[
+            { label: 'Branch + PIN', value: false },
+            { label: 'Employee # + PIN', value: true },
+          ].map(({ label, value }) => (
             <button
+              key={label}
               type="button"
-              className={
-                !useEmployeeId
-                  ? 'font-semibold text-primary'
-                  : 'text-muted-foreground'
-              }
-              onClick={() => setUseEmployeeId(false)}
+              onClick={() => setUseEmployeeId(value)}
+              className={cn(
+                'flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150',
+                useEmployeeId === value
+                  ? 'bg-card text-foreground [box-shadow:var(--shadow-xs)]'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
             >
-              Branch + PIN
+              {label}
             </button>
-            <span className="text-muted-foreground">·</span>
-            <button
-              type="button"
-              className={
-                useEmployeeId
-                  ? 'font-semibold text-primary'
-                  : 'text-muted-foreground'
-              }
-              onClick={() => setUseEmployeeId(true)}
-            >
-              Employee # + PIN
-            </button>
-          </div>
+          ))}
+        </div>
 
+        <form onSubmit={onSubmit} className="mt-4 space-y-4">
           <div>
             <Label htmlFor="branch_id">Branch ID</Label>
             <Input
               id="branch_id"
               inputMode="numeric"
               required
-              className="mt-1"
+              className="mt-1.5"
               value={branchId}
               onChange={(e) => setBranchId(e.target.value)}
             />
@@ -101,12 +89,12 @@ export function StaffLoginPage() {
                 id="employee_id"
                 inputMode="numeric"
                 required
-                className="mt-1"
+                className="mt-1.5"
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value)}
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                Numeric ID from your manager (not EMP- code).
+                Numeric ID from your manager (not the EMP- code).
               </p>
             </div>
           )}
@@ -121,25 +109,26 @@ export function StaffLoginPage() {
               maxLength={4}
               required
               autoComplete="off"
-              className="mt-1 tracking-widest"
+              className="mt-1.5 tracking-[0.5em] text-center text-lg font-bold"
+              placeholder="••••"
               value={pin}
               onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+            <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400" role="alert">
               {error}
-            </p>
+            </div>
           )}
 
-          <Button type="submit" disabled={submitting} className="w-full">
+          <Button type="submit" disabled={submitting} size="lg" className="mt-2 w-full">
             {submitting ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-muted-foreground">
-          <Link to="/login" className="font-medium text-primary hover:underline">
+        <p className="mt-5 text-center text-sm text-muted-foreground">
+          <Link to="/login" className="font-semibold text-primary hover:underline">
             Owner / manager login
           </Link>
         </p>

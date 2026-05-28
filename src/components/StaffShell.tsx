@@ -13,24 +13,34 @@ export function StaffShell() {
       <SidebarNav variant="staff" companyName={employee?.branch?.name} />
 
       <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 border-b border-border bg-card/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/80 md:px-6 lg:px-8">
+        {/* Top stripe */}
+        <div className="h-0.5 bg-gradient-to-r from-primary via-teal-400 to-primary/40" />
+
+        <header className="sticky top-0.5 z-10 border-b border-border bg-card/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/85 md:px-6 lg:px-8">
           <div className="mx-auto flex w-full max-w-lg items-center justify-between gap-2 sm:max-w-xl md:max-w-2xl lg:max-w-none">
+            {/* Mobile */}
             <div className="min-w-0 flex-1 lg:hidden">
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-                WashLy Staff
-              </p>
-              <h1 className="truncate text-lg font-semibold text-foreground">
-                {employee?.branch?.name ?? 'Loading…'}
-              </h1>
+              <div className="flex items-center gap-2">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-primary text-[10px] font-bold text-primary-foreground">
+                  W
+                </span>
+                <h1 className="truncate text-base font-bold text-foreground">
+                  {employee?.branch?.name ?? 'WashLy Staff'}
+                </h1>
+              </div>
             </div>
+
+            {/* Desktop */}
             <div className="hidden min-w-0 flex-1 lg:block">
               <p className="text-sm text-muted-foreground">
                 Signed in as{' '}
-                <span className="font-medium text-foreground">
-                  {employee?.name}
-                </span>
+                <span className="font-semibold text-foreground">{employee?.name}</span>
+                {employee?.branch?.name && (
+                  <span className="ml-1 text-muted-foreground">· {employee.branch.name}</span>
+                )}
               </p>
             </div>
+
             <div className="flex items-center gap-1">
               <ThemeToggle />
               <Button
@@ -45,7 +55,7 @@ export function StaffShell() {
           </div>
         </header>
 
-        <main className="flex-1 px-4 pb-24 pt-4 md:px-6 md:pb-24 lg:px-8 lg:pb-8">
+        <main className="flex-1 px-4 pb-28 pt-5 md:px-6 md:pb-28 lg:px-8 lg:pb-8">
           <div className="mx-auto w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-5xl xl:max-w-6xl">
             <Outlet />
           </div>

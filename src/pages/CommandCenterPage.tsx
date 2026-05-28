@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   Building2,
   DollarSign,
+  HandCoins,
   Package,
   Users,
 } from 'lucide-react';
@@ -42,22 +43,27 @@ type ToggleRowProps = {
   onChange: (value: boolean) => void;
 };
 
-function ToggleRow({
-  label,
-  description,
-  checked,
-  disabled,
-  onChange,
-}: ToggleRowProps) {
+function ToggleRow({ label, description, checked, disabled, onChange }: ToggleRowProps) {
   return (
-    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border px-3 py-3 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60">
-      <input
-        type="checkbox"
-        className="mt-1 h-4 w-4 rounded border-input accent-primary"
-        checked={checked}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.checked)}
-      />
+    <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 transition-colors hover:bg-muted/50 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50">
+      {/* Custom toggle pill */}
+      <span className="relative shrink-0">
+        <input
+          type="checkbox"
+          className="sr-only"
+          checked={checked}
+          disabled={disabled}
+          onChange={(e) => onChange(e.target.checked)}
+        />
+        <span className={[
+          'block h-5 w-9 rounded-full transition-colors duration-200',
+          checked ? 'bg-primary' : 'bg-muted-foreground/30',
+        ].join(' ')} />
+        <span className={[
+          'absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform duration-200 [box-shadow:0_1px_3px_rgb(0_0_0/0.2)]',
+          checked ? 'translate-x-4' : 'translate-x-0',
+        ].join(' ')} />
+      </span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-medium">{label}</span>
         <span className="block text-xs text-muted-foreground">{description}</span>
@@ -147,33 +153,53 @@ export function CommandCenterPage() {
       </Card>
 
       {error && (
-        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400">
+          {error}
+        </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-3 xl:grid-cols-6">
         <MetricCard
           label="Revenue"
-          value={loading ? '…' : formatPeso(data?.pulse.revenue_cents ?? 0)}
-          hint="Settled orders in period"
+          value={loading ? '—' : formatPeso(data?.pulse.revenue_cents ?? 0)}
+          hint="Settled orders"
           icon={DollarSign}
+          tone="teal"
+        />
+        <MetricCard
+          label="Expenses"
+          value={loading ? '—' : formatPeso(data?.pulse.expenses_cents ?? 0)}
+          hint="Logged this period"
+          icon={HandCoins}
+          tone="amber"
+        />
+        <MetricCard
+          label="Gross profit"
+          value={loading ? '—' : formatPeso(data?.pulse.gross_profit_cents ?? 0)}
+          hint="Revenue − expenses"
+          icon={DollarSign}
+          tone="emerald"
         />
         <MetricCard
           label="Settled"
-          value={loading ? '…' : (data?.pulse.orders_settled ?? 0)}
+          value={loading ? '—' : (data?.pulse.orders_settled ?? 0)}
           hint={`${data?.pulse.orders_created ?? 0} created`}
           icon={Package}
+          tone="blue"
         />
         <MetricCard
           label="In progress"
-          value={loading ? '…' : (data?.pulse.orders_in_progress ?? 0)}
+          value={loading ? '—' : (data?.pulse.orders_in_progress ?? 0)}
           hint="Active pipeline"
           icon={Activity}
+          tone="violet"
         />
         <MetricCard
           label="Ready"
-          value={loading ? '…' : (data?.pulse.orders_ready ?? 0)}
+          value={loading ? '—' : (data?.pulse.orders_ready ?? 0)}
           hint={subscriptionStatusLabel(account?.subscription.status ?? '')}
           icon={Building2}
+          tone="rose"
         />
       </div>
 
@@ -189,11 +215,11 @@ export function CommandCenterPage() {
                 <div>
                   <p className="text-sm font-medium">{row.branch_name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {row.orders_settled} settled
+                    {row.orders_settled} settled · Expenses {formatPeso(row.expenses_cents)}
                   </p>
                 </div>
                 <p className="text-sm font-semibold tabular-nums">
-                  {formatPeso(row.revenue_cents)}
+                  {formatPeso(row.gross_profit_cents)}
                 </p>
               </div>
             ))}
@@ -204,17 +230,17 @@ export function CommandCenterPage() {
       {data && data.alerts.length > 0 && (
         <section className="space-y-3">
           <SectionHeader title="Alerts" />
-          <Card className="divide-y divide-border">
+          <div className="space-y-2">
             {data.alerts.map((alert) => (
               <div
                 key={alert.type}
-                className="flex items-start gap-3 px-4 py-3"
+                className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900 dark:bg-amber-950/30"
               >
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-                <p className="text-sm">{alert.message}</p>
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                <p className="text-sm text-amber-800 dark:text-amber-300">{alert.message}</p>
               </div>
             ))}
-          </Card>
+          </div>
         </section>
       )}
 

@@ -8,6 +8,14 @@ export function canManageBranches(role: UserRole | undefined): boolean {
   return role === 'owner' || role === 'manager';
 }
 
+export function isOwnerRole(role: UserRole | undefined): boolean {
+  return role === 'owner';
+}
+
+export function isAttendantRole(role: UserRole | undefined): boolean {
+  return role === 'attendant';
+}
+
 const SUBSCRIPTION_STATUS_LABELS: Record<string, string> = {
   trial: 'Trial',
   payment_pending: 'Payment pending',

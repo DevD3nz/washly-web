@@ -2,73 +2,91 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* WashLy tokens — aligned with shadcn/ui semantic naming (see docs/FRONTEND-STACK.md) */
+/* ── WashLy Design Tokens ──────────────────────────────────── */
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --border: #e2e8f0;
-  --input: #cbd5e1;
-  --primary: #0f766e;
-  --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #f0fdfa;
-  --accent-foreground: #115e59;
-  --destructive: #dc2626;
+  --background:          #f0f4f8;
+  --foreground:          #0d1117;
+  --card:                #ffffff;
+  --card-foreground:     #0d1117;
+  --border:              #e2e8f0;
+  --input:               #e2e8f0;
+  --primary:             #0d9488;
+  --primary-foreground:  #ffffff;
+  --secondary:           #f1f5f9;
+  --secondary-foreground:#475569;
+  --muted:               #f8fafc;
+  --muted-foreground:    #64748b;
+  --accent:              #f0fdfa;
+  --accent-foreground:   #0f766e;
+  --destructive:         #e11d48;
   --destructive-foreground: #ffffff;
-  --ring: #0f766e;
-  --radius: 0.75rem;
+  --ring:                #0d9488;
+  --radius:              0.75rem;
+
+  /* shadows */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.07), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+  --shadow-md: 0 4px 8px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+  --shadow-lg: 0 10px 20px -4px rgb(0 0 0 / 0.10), 0 4px 8px -4px rgb(0 0 0 / 0.07);
 }
 
 .dark {
-  --background: #020617;
-  --foreground: #f1f5f9;
-  --card: #0f172a;
-  --card-foreground: #f1f5f9;
-  --border: #1e293b;
-  --input: #334155;
-  --primary: #2dd4bf;
-  --primary-foreground: #042f2e;
-  --secondary: #1e293b;
-  --secondary-foreground: #f1f5f9;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --accent: #134e4a;
-  --accent-foreground: #ccfbf1;
-  --destructive: #ef4444;
+  --background:          #080e18;
+  --foreground:          #edf2f7;
+  --card:                #0f1929;
+  --card-foreground:     #edf2f7;
+  --border:              #1e2d45;
+  --input:               #253550;
+  --primary:             #14b8a6;
+  --primary-foreground:  #042f2e;
+  --secondary:           #1a2640;
+  --secondary-foreground:#e2e8f0;
+  --muted:               #1a2640;
+  --muted-foreground:    #8fa7c9;
+  --accent:              #0d3b37;
+  --accent-foreground:   #99f6e4;
+  --destructive:         #f43f5e;
   --destructive-foreground: #ffffff;
-  --ring: #2dd4bf;
+  --ring:                #14b8a6;
+
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.25);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.30), 0 1px 2px -1px rgb(0 0 0 / 0.25);
+  --shadow-md: 0 4px 8px -2px rgb(0 0 0 / 0.35), 0 2px 4px -2px rgb(0 0 0 / 0.25);
+  --shadow-lg: 0 10px 20px -4px rgb(0 0 0 / 0.40), 0 4px 8px -4px rgb(0 0 0 / 0.30);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
+  --color-background:          var(--background);
+  --color-foreground:          var(--foreground);
+  --color-card:                var(--card);
+  --color-card-foreground:     var(--card-foreground);
+  --color-border:              var(--border);
+  --color-input:               var(--input);
+  --color-primary:             var(--primary);
+  --color-primary-foreground:  var(--primary-foreground);
+  --color-secondary:           var(--secondary);
+  --color-secondary-foreground:var(--secondary-foreground);
+  --color-muted:               var(--muted);
+  --color-muted-foreground:    var(--muted-foreground);
+  --color-accent:              var(--accent);
+  --color-accent-foreground:   var(--accent-foreground);
+  --color-destructive:         var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-  --color-ring: var(--ring);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --color-ring:                var(--ring);
+  --shadow-xs:  var(--shadow-xs);
+  --shadow-sm:  var(--shadow-sm);
+  --shadow-md:  var(--shadow-md);
+  --shadow-lg:  var(--shadow-lg);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
 }
 
 html {
   color-scheme: light;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html.dark {
@@ -78,4 +96,27 @@ html.dark {
 body {
   min-height: 100dvh;
   @apply bg-background text-foreground antialiased;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* smooth scrolling */
+* {
+  scroll-behavior: smooth;
+}
+
+/* custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
+
+/* Native select dropdowns: Windows/Chromium may paint a light popup in dark mode */
+select option {
+  background-color: var(--card);
+  color: var(--card-foreground);
+}
+
+.dark select option {
+  background-color: #ffffff;
+  color: #0d1117;
 }

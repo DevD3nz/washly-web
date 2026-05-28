@@ -11,7 +11,9 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { SetupPage } from './pages/SetupPage';
 import { CommandCenterPage } from './pages/CommandCenterPage';
+import { ExpensesPage } from './pages/ExpensesPage';
 import { StaffHomePage } from './pages/StaffHomePage';
+import { StaffExpensesPage } from './pages/StaffExpensesPage';
 import { StaffLoginPage } from './pages/StaffLoginPage';
 import { StaffOrdersPage } from './pages/StaffOrdersPage';
 
@@ -68,6 +70,7 @@ export default function App() {
               <Route index element={<CommandCenterPage />} />
               <Route path="branches" element={<BranchesPage />} />
               <Route path="employees" element={<EmployeesPage />} />
+              <Route path="expenses" element={<ExpensesPage />} />
               <Route path="activity" element={<ActivityPage />} />
             </Route>
             <Route
@@ -79,6 +82,7 @@ export default function App() {
             >
               <Route path="staff" element={<StaffHomePage />} />
               <Route path="staff/orders" element={<StaffOrdersPage />} />
+              <Route path="staff/expenses" element={<StaffExpensesPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
