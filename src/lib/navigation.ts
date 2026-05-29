@@ -8,6 +8,7 @@ import {
   Users,
   Wallet,
   Bike,
+  Bell,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -27,6 +28,7 @@ export const ownerNav: NavItem[] = [
   { to: '/expenses', label: 'Expenses', icon: HandCoins },
   { to: '/inventory', label: 'Inventory', icon: Boxes },
   { to: '/activity', label: 'Activity', icon: Activity },
+  { to: '/notifications', label: 'SMS', icon: Bell },
 ];
 
 export const staffNav: NavItem[] = [
