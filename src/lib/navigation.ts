@@ -9,6 +9,7 @@ import {
   Wallet,
   Bike,
   Bell,
+  CreditCard,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -29,6 +30,7 @@ export const ownerNav: NavItem[] = [
   { to: '/inventory', label: 'Inventory', icon: Boxes },
   { to: '/activity', label: 'Activity', icon: Activity },
   { to: '/notifications', label: 'SMS', icon: Bell },
+  { to: '/subscription', label: 'Plan', icon: CreditCard },
 ];
 
 export const staffNav: NavItem[] = [

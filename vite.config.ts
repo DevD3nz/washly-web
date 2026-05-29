@@ -11,6 +11,21 @@ export default defineConfig({
       registerType: 'autoUpdate',
       devOptions: { enabled: false },
       includeAssets: ['favicon.svg'],
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api/],
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'washly-pages',
+              networkTimeoutSeconds: 3,
+            },
+          },
+        ],
+      },
       manifest: {
         name: 'WashLy',
         short_name: 'WashLy',

@@ -23,6 +23,7 @@ import { PayrollPage } from './pages/PayrollPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { RiderDeliveriesPage } from './pages/RiderDeliveriesPage';
 import { NotificationsPage } from './pages/NotificationsPage';
+import { SubscriptionPage } from './pages/SubscriptionPage';
 
 function Protected({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -98,6 +99,7 @@ export default function App() {
               <Route path="inventory" element={<InventoryPage />} />
               <Route path="activity" element={<ActivityPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="subscription" element={<SubscriptionPage />} />
             </Route>
             <Route
               element={

@@ -44,6 +44,7 @@ export type AccountInfo = {
     status: SubscriptionStatus | string;
     trial_ends_at: string | null;
     subscription_ends_at?: string | null;
+    grace_ends_at?: string | null;
     plan: {
       slug: string;
       name: string;
@@ -104,6 +105,16 @@ function staffAuthHeaders(): HeadersInit {
     : { Accept: 'application/json' };
 }
 
+export class ApiRequestError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiRequestError';
+    this.status = status;
+  }
+}
+
 async function parseJsonResponse<T>(res: Response): Promise<T> {
   const body = await res.json().catch(() => ({}));
 
@@ -114,7 +125,7 @@ async function parseJsonResponse<T>(res: Response): Promise<T> {
         .flat()
         .join(' ') ??
       res.statusText;
-    throw new Error(message);
+    throw new ApiRequestError(message, res.status);
   }
 
   return body as T;

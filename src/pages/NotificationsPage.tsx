@@ -1,12 +1,8 @@
-import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { Input } from '../components/ui/Input';
-import { Label } from '../components/ui/Label';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SectionHeader } from '../components/ui/SectionHeader';
-import { Select } from '../components/ui/Select';
 import { useNotifications } from '../features/notifications/hooks/useNotifications';
 
 type ToggleRowProps = {
@@ -62,13 +58,7 @@ function creditsHint(balance: number, reason: string | null): string {
 }
 
 export function NotificationsPage() {
-  const { settings, plans, proofs, loading, busy, error, updateSettings, submitProof } =
-    useNotifications();
-  const [planSlug, setPlanSlug] = useState('standard');
-  const [reference, setReference] = useState('');
-  const [amountPhp, setAmountPhp] = useState('');
-
-  const selectedPlan = plans.find((p) => p.slug === planSlug) ?? plans[0];
+  const { settings, loading, busy, error, updateSettings } = useNotifications();
   const noCredits = (settings?.sms_credits_balance ?? 0) <= 0;
 
   const onSmsMaster = (enabled: boolean) => {
@@ -79,19 +69,6 @@ export function NotificationsPage() {
     (enabled: boolean) => {
       void updateSettings({ [key]: enabled });
     };
-
-  const handleSubmitProof = () => {
-    const cents = Math.round(parseFloat(amountPhp || '0') * 100);
-    if (!reference.trim() || cents <= 0 || !selectedPlan) return;
-    void submitProof({
-      subscription_plan_slug: selectedPlan.slug,
-      amount_cents: cents,
-      payment_reference: reference.trim(),
-    }).then(() => {
-      setReference('');
-      setAmountPhp('');
-    });
-  };
 
   if (loading) {
     return <p className="text-sm text-muted-foreground">Loading notifications…</p>;
@@ -160,63 +137,14 @@ export function NotificationsPage() {
         />
       </Card>
 
-      <Card className="space-y-4 p-4">
-        <SectionHeader title="Subscription payment" />
-        <p className="text-xs text-muted-foreground">
-          Upload proof after GCash/bank transfer. Admin approval adds SMS credits.
+      <Card className="space-y-2 p-4 text-sm">
+        <SectionHeader title="Subscription & billing" />
+        <p className="text-muted-foreground">
+          Plan status, payment instructions, and proof upload live on the Plan page.
         </p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <Label htmlFor="plan">Plan</Label>
-            <Select
-              id="plan"
-              value={planSlug}
-              onChange={(e) => setPlanSlug(e.target.value)}
-            >
-              {plans.map((p) => (
-                <option key={p.slug} value={p.slug}>
-                  {p.name} — {p.sms_credits_included} SMS credits
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="amount">Amount paid (PHP)</Label>
-            <Input
-              id="amount"
-              type="number"
-              min="0"
-              step="0.01"
-              value={amountPhp}
-              onChange={(e) => setAmountPhp(e.target.value)}
-              placeholder="999.00"
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <Label htmlFor="ref">Payment reference</Label>
-            <Input
-              id="ref"
-              value={reference}
-              onChange={(e) => setReference(e.target.value)}
-              placeholder="GCash ref # or bank transfer ID"
-            />
-          </div>
-        </div>
-        <Button type="button" disabled={busy} onClick={handleSubmitProof}>
-          Submit payment proof
-        </Button>
-        {proofs.length > 0 && (
-          <ul className="space-y-2 text-sm">
-            {proofs.map((p) => (
-              <li key={p.id} className="flex justify-between rounded-lg border border-border px-3 py-2">
-                <span>
-                  {p.plan?.name ?? 'Plan'} · {p.payment_reference}
-                </span>
-                <Badge tone={p.status === 'approved' ? 'success' : 'muted'}>{p.status}</Badge>
-              </li>
-            ))}
-          </ul>
-        )}
+        <Link to="/subscription" className="font-semibold text-primary underline">
+          Open subscription page
+        </Link>
       </Card>
     </div>
   );

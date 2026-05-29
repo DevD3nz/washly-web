@@ -1,0 +1,49 @@
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #washly-print-root,
+  #washly-print-root * {
+    visibility: visible;
+  }
+
+  #washly-print-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 1rem;
+    font-family: system-ui, sans-serif;
+    font-size: 12pt;
+    color: #000;
+    background: #fff;
+  }
+}
+
+.washly-receipt-print {
+  max-width: 80mm;
+}
+
+.washly-receipt-print h1 {
+  font-size: 14pt;
+  margin: 0 0 0.5rem;
+}
+
+.washly-receipt-print table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.75rem;
+}
+
+.washly-receipt-print th,
+.washly-receipt-print td {
+  text-align: left;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.washly-receipt-print .total {
+  font-weight: 700;
+  margin-top: 0.75rem;
+}

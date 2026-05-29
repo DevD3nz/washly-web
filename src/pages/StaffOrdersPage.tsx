@@ -18,6 +18,7 @@ import {
   postStaffOrder,
   postStaffOrderStatus,
 } from '../lib/api';
+import { printOrderReceipt } from '../lib/printReceipt';
 import {
   DELIVERY_DISPATCH_STATUSES,
   nextOrderStatus,
@@ -135,6 +136,20 @@ export function StaffOrdersPage() {
       setReceiptBusyId(null);
     }
   }, []);
+
+  const onPrintReceipt = useCallback(async (order: Order) => {
+    setReceiptBusyId(order.id);
+    setReceiptMsg('');
+    try {
+      const receipt = await fetchStaffOrderReceipt(order.id);
+      printOrderReceipt(receipt, employee?.branch?.name);
+      setReceiptMsg(`Print dialog opened for ${receipt.order_number}`);
+    } catch (e) {
+      setLoadError(e instanceof Error ? e.message : 'Could not print receipt');
+    } finally {
+      setReceiptBusyId(null);
+    }
+  }, [employee?.branch?.name]);
 
   async function onCreateOrder(e: FormEvent) {
     e.preventDefault();
@@ -400,6 +415,7 @@ export function StaffOrdersPage() {
             buckets={board.pickup}
             onAdvance={onAdvance}
             onCopyReceipt={onCopyReceipt}
+            onPrintReceipt={onPrintReceipt}
             busyId={busyId}
             receiptBusyId={receiptBusyId}
             showFulfillmentBadge
@@ -411,6 +427,7 @@ export function StaffOrdersPage() {
             buckets={board.delivery}
             onAdvance={onAdvance}
             onCopyReceipt={onCopyReceipt}
+            onPrintReceipt={onPrintReceipt}
             busyId={busyId}
             receiptBusyId={receiptBusyId}
           />

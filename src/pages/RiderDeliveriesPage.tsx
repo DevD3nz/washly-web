@@ -1,4 +1,4 @@
-import { RefreshCw } from 'lucide-react';
+import { MapPin, RefreshCw } from 'lucide-react';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -7,6 +7,7 @@ import { useStaffAuth } from '../context/StaffAuthContext';
 import { formatPeso, statusUi } from '../features/orders/orderBoardUi';
 import { useRiderDeliveries } from '../features/rider/hooks/useRiderDeliveries';
 import { cn } from '../lib/cn';
+import { buildDeliveryNavigationLinks } from '../lib/mapsLinks';
 import { nextOrderStatus, type Order } from '../types/order';
 
 function deliveryAddress(order: Order): string {
@@ -15,7 +16,8 @@ function deliveryAddress(order: Order): string {
 
 export function RiderDeliveriesPage() {
   const { employee } = useStaffAuth();
-  const { orders, loading, busyId, error, reload, advance } = useRiderDeliveries();
+  const { orders, loading, busyId, error, pendingCount, isOnline, reload, advance } =
+    useRiderDeliveries();
 
   return (
     <div className="mx-auto max-w-lg space-y-4">
@@ -40,6 +42,13 @@ export function RiderDeliveriesPage() {
         </Button>
       </div>
 
+      {!isOnline && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+          Offline — status updates are saved and will sync when you are back online.
+          {pendingCount > 0 && ` (${pendingCount} pending)`}
+        </div>
+      )}
+
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400">
           {error}
@@ -62,6 +71,10 @@ export function RiderDeliveriesPage() {
         {orders.map((order) => {
           const next = nextOrderStatus(order);
           const ui = statusUi(order.status);
+          const nav = buildDeliveryNavigationLinks(
+            order.delivery_address,
+            order.delivery_neighborhood,
+          );
           const total = order.items?.reduce(
             (sum, i) => sum + (i.unit_price_cents ?? 0) * i.quantity,
             0,
@@ -100,6 +113,28 @@ export function RiderDeliveriesPage() {
                   <p className="mt-2 text-sm font-semibold text-primary tabular-nums">
                     {formatPeso(total)}
                   </p>
+                )}
+
+                {nav && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <a
+                      href={nav.googleMapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-xs font-medium hover:bg-muted"
+                    >
+                      <MapPin className="h-3.5 w-3.5" />
+                      Maps
+                    </a>
+                    <a
+                      href={nav.wazeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-xs font-medium hover:bg-muted"
+                    >
+                      Waze
+                    </a>
+                  </div>
                 )}
 
                 {next ? (

@@ -14,6 +14,7 @@ type OrderKanbanBoardProps = {
   buckets: Record<string, Order[]>;
   onAdvance: (order: Order) => Promise<void>;
   onCopyReceipt: (order: Order) => Promise<void>;
+  onPrintReceipt?: (order: Order) => Promise<void>;
   busyId: number | null;
   receiptBusyId: number | null;
   showFulfillmentBadge?: boolean;
@@ -24,6 +25,7 @@ function OrderKanbanCard({
   order,
   onAdvance,
   onCopyReceipt,
+  onPrintReceipt,
   busy,
   receiptBusy,
   showFulfillmentBadge,
@@ -32,6 +34,7 @@ function OrderKanbanCard({
   order: Order;
   onAdvance: (order: Order) => Promise<void>;
   onCopyReceipt: (order: Order) => Promise<void>;
+  onPrintReceipt?: (order: Order) => Promise<void>;
   busy: boolean;
   receiptBusy: boolean;
   showFulfillmentBadge?: boolean;
@@ -109,16 +112,30 @@ function OrderKanbanCard({
             Complete
           </div>
         )}
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          className="h-9 w-full text-xs text-muted-foreground"
-          disabled={busy || receiptBusy}
-          onClick={() => void onCopyReceipt(order)}
-        >
-          {receiptBusy ? 'Copying…' : 'Copy receipt link'}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="h-9 flex-1 text-xs text-muted-foreground"
+            disabled={busy || receiptBusy}
+            onClick={() => void onCopyReceipt(order)}
+          >
+            {receiptBusy ? '…' : 'Copy link'}
+          </Button>
+          {onPrintReceipt && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-9 flex-1 text-xs text-muted-foreground"
+              disabled={busy || receiptBusy}
+              onClick={() => void onPrintReceipt(order)}
+            >
+              {receiptBusy ? '…' : 'Print'}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -129,6 +146,7 @@ function KanbanColumn({
   orders,
   onAdvance,
   onCopyReceipt,
+  onPrintReceipt,
   busyId,
   receiptBusyId,
   scrollable,
@@ -139,6 +157,7 @@ function KanbanColumn({
   orders: Order[];
   onAdvance: (order: Order) => Promise<void>;
   onCopyReceipt: (order: Order) => Promise<void>;
+  onPrintReceipt?: (order: Order) => Promise<void>;
   busyId: number | null;
   receiptBusyId: number | null;
   scrollable: boolean;
@@ -175,6 +194,7 @@ function KanbanColumn({
                 order={order}
                 onAdvance={onAdvance}
                 onCopyReceipt={onCopyReceipt}
+                onPrintReceipt={onPrintReceipt}
                 busy={busyId === order.id}
                 receiptBusy={receiptBusyId === order.id}
                 showFulfillmentBadge={showFulfillmentBadge}
@@ -250,6 +270,7 @@ export function OrderKanbanBoard({
   buckets,
   onAdvance,
   onCopyReceipt,
+  onPrintReceipt,
   busyId,
   receiptBusyId,
   showFulfillmentBadge,
@@ -314,6 +335,7 @@ export function OrderKanbanBoard({
               orders={buckets[status] ?? []}
               onAdvance={onAdvance}
               onCopyReceipt={onCopyReceipt}
+              onPrintReceipt={onPrintReceipt}
               busyId={busyId}
               receiptBusyId={receiptBusyId}
               scrollable

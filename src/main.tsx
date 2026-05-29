@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ThemeProvider } from './context/ThemeContext';
 import './index.css';
+import './styles/print.css';
 
 const rootEl = document.getElementById('root');
 
