@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { ownerNav, staffNav } from '../lib/navigation';
+import { ownerNav, riderNav, staffNav } from '../lib/navigation';
 import { cn } from '../lib/cn';
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -9,11 +9,12 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
   );
 
 type Props = {
-  variant: 'owner' | 'staff';
+  variant: 'owner' | 'staff' | 'rider';
 };
 
 export function BottomNav({ variant }: Props) {
-  const items = variant === 'staff' ? staffNav : ownerNav;
+  const items =
+    variant === 'rider' ? riderNav : variant === 'staff' ? staffNav : ownerNav;
 
   return (
     <nav

@@ -31,6 +31,7 @@ export const employeeFormSchema = z.object({
     .refine((v) => !v || /^\d{4}$/.test(v), 'PIN must be 4 digits'),
   daily_rate: optionalRateInput,
   hourly_rate: optionalRateInput,
+  commission_per_drop: optionalRateInput,
   notes: z.string().max(5000).optional().or(z.literal('')),
   emergency_contact_name: z.string().max(255).optional().or(z.literal('')),
   emergency_contact_phone: z.string().max(32).optional().or(z.literal('')),
@@ -78,9 +79,14 @@ export function toEmployeePayload(
     body.pin = values.pin;
   }
 
+  const commission = parseRateForPayload(values.commission_per_drop, isUpdate);
+
   if (isUpdate) {
     body.daily_rate = parseRateForPayload(values.daily_rate, true);
     body.hourly_rate = parseRateForPayload(values.hourly_rate, true);
+    if (values.job_title === 'rider' || commission !== undefined) {
+      body.commission_per_drop = commission;
+    }
   } else {
     const daily = parseRateForPayload(values.daily_rate, false);
     const hourly = parseRateForPayload(values.hourly_rate, false);
@@ -89,6 +95,9 @@ export function toEmployeePayload(
     }
     if (hourly !== undefined) {
       body.hourly_rate = hourly;
+    }
+    if (values.job_title === 'rider' && commission !== undefined) {
+      body.commission_per_drop = commission;
     }
   }
 

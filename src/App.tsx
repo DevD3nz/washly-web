@@ -4,6 +4,7 @@ import { AppShell } from './components/AppShell';
 import { StaffShell } from './components/StaffShell';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { StaffAuthProvider, useStaffAuth } from './context/StaffAuthContext';
+import { canManageBranches } from './lib/roles';
 import { ActivityPage } from './pages/ActivityPage';
 import { BranchesPage } from './pages/BranchesPage';
 import { EmployeesPage } from './pages/EmployeesPage';
@@ -18,6 +19,9 @@ import { StaffHomePage } from './pages/StaffHomePage';
 import { StaffExpensesPage } from './pages/StaffExpensesPage';
 import { StaffLoginPage } from './pages/StaffLoginPage';
 import { StaffOrdersPage } from './pages/StaffOrdersPage';
+import { PayrollPage } from './pages/PayrollPage';
+import { OrdersPage } from './pages/OrdersPage';
+import { RiderDeliveriesPage } from './pages/RiderDeliveriesPage';
 
 function Protected({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -52,6 +56,14 @@ function StaffProtected({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function ManagerOnlyRoute({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  if (!canManageBranches(user?.role)) {
+    return <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -70,8 +82,17 @@ export default function App() {
               }
             >
               <Route index element={<CommandCenterPage />} />
+              <Route path="orders" element={<OrdersPage />} />
               <Route path="branches" element={<BranchesPage />} />
               <Route path="employees" element={<EmployeesPage />} />
+              <Route
+                path="payroll"
+                element={
+                  <ManagerOnlyRoute>
+                    <PayrollPage />
+                  </ManagerOnlyRoute>
+                }
+              />
               <Route path="expenses" element={<ExpensesPage />} />
               <Route path="inventory" element={<InventoryPage />} />
               <Route path="activity" element={<ActivityPage />} />
@@ -87,6 +108,7 @@ export default function App() {
               <Route path="staff/orders" element={<StaffOrdersPage />} />
               <Route path="staff/inventory" element={<StaffInventoryPage />} />
               <Route path="staff/expenses" element={<StaffExpensesPage />} />
+              <Route path="staff/rider/deliveries" element={<RiderDeliveriesPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

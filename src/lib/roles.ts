@@ -16,6 +16,10 @@ export function isAttendantRole(role: UserRole | undefined): boolean {
   return role === 'attendant';
 }
 
+export function isRiderJobTitle(jobTitle: string | undefined): boolean {
+  return jobTitle === 'rider';
+}
+
 const SUBSCRIPTION_STATUS_LABELS: Record<string, string> = {
   trial: 'Trial',
   payment_pending: 'Payment pending',

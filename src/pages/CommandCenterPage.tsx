@@ -158,7 +158,7 @@ export function CommandCenterPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-8">
         <MetricCard
           label="Revenue"
           value={loading ? '—' : formatPeso(data?.pulse.revenue_cents ?? 0)}
@@ -179,6 +179,20 @@ export function CommandCenterPage() {
           hint="Revenue − expenses"
           icon={DollarSign}
           tone="emerald"
+        />
+        <MetricCard
+          label="Labor"
+          value={loading ? '—' : formatPeso(data?.pulse.labor_cents ?? 0)}
+          hint="Posted payroll this period"
+          icon={Users}
+          tone="rose"
+        />
+        <MetricCard
+          label="Net margin"
+          value={loading ? '—' : formatPeso(data?.pulse.net_margin_cents ?? 0)}
+          hint="Gross profit − labor"
+          icon={DollarSign}
+          tone="violet"
         />
         <MetricCard
           label="Settled"
@@ -215,11 +229,11 @@ export function CommandCenterPage() {
                 <div>
                   <p className="text-sm font-medium">{row.branch_name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {row.orders_settled} settled · Expenses {formatPeso(row.expenses_cents)}
+                    {row.orders_settled} settled · Labor {formatPeso(row.labor_cents)}
                   </p>
                 </div>
                 <p className="text-sm font-semibold tabular-nums">
-                  {formatPeso(row.gross_profit_cents)}
+                  {formatPeso(row.net_margin_cents)}
                 </p>
               </div>
             ))}
@@ -289,6 +303,18 @@ export function CommandCenterPage() {
             title="Staff"
             description="Profiles, PIN, pay rates"
             icon={Users}
+          />
+          <QuickActionCard
+            to="/payroll"
+            title="Payroll"
+            description="Pay runs & commissions"
+            icon={HandCoins}
+          />
+          <QuickActionCard
+            to="/orders"
+            title="Orders"
+            description="Board & rider assignment"
+            icon={Package}
           />
           <QuickActionCard
             to="/activity"

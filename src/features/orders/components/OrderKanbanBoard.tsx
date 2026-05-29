@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
@@ -17,6 +17,7 @@ type OrderKanbanBoardProps = {
   busyId: number | null;
   receiptBusyId: number | null;
   showFulfillmentBadge?: boolean;
+  renderOrderExtras?: (order: Order) => ReactNode;
 };
 
 function OrderKanbanCard({
@@ -26,6 +27,7 @@ function OrderKanbanCard({
   busy,
   receiptBusy,
   showFulfillmentBadge,
+  renderOrderExtras,
 }: {
   order: Order;
   onAdvance: (order: Order) => Promise<void>;
@@ -33,6 +35,7 @@ function OrderKanbanCard({
   busy: boolean;
   receiptBusy: boolean;
   showFulfillmentBadge?: boolean;
+  renderOrderExtras?: (order: Order) => ReactNode;
 }) {
   const next = nextOrderStatus(order);
   const total = orderTotalCents(order);
@@ -69,11 +72,19 @@ function OrderKanbanCard({
         </Badge>
       )}
 
-      {order.fulfillment_type === 'delivery' && order.notes && (
+      {order.fulfillment_type === 'delivery' &&
+        (order.delivery_address ?? order.notes) && (
         <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-          📍 {order.notes}
+          📍 {order.delivery_address ?? order.notes}
+          {order.delivery_neighborhood ? ` · ${order.delivery_neighborhood}` : ''}
         </p>
       )}
+
+      {order.rider?.name && (
+        <p className="mt-1 text-xs text-muted-foreground">🛵 {order.rider.name}</p>
+      )}
+
+      {renderOrderExtras?.(order)}
 
       {order.items && order.items.length > 0 && (
         <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
@@ -122,6 +133,7 @@ function KanbanColumn({
   receiptBusyId,
   scrollable,
   showFulfillmentBadge,
+  renderOrderExtras,
 }: {
   status: string;
   orders: Order[];
@@ -131,6 +143,7 @@ function KanbanColumn({
   receiptBusyId: number | null;
   scrollable: boolean;
   showFulfillmentBadge?: boolean;
+  renderOrderExtras?: (order: Order) => ReactNode;
 }) {
   const ui = statusUi(status);
 
@@ -165,6 +178,7 @@ function KanbanColumn({
                 busy={busyId === order.id}
                 receiptBusy={receiptBusyId === order.id}
                 showFulfillmentBadge={showFulfillmentBadge}
+                renderOrderExtras={renderOrderExtras}
               />
             ))
           )}
@@ -239,6 +253,7 @@ export function OrderKanbanBoard({
   busyId,
   receiptBusyId,
   showFulfillmentBadge,
+  renderOrderExtras,
 }: OrderKanbanBoardProps) {
   const active = boardActiveCount(buckets, statuses);
   const wideBoard = statuses.length >= 5;
@@ -303,6 +318,7 @@ export function OrderKanbanBoard({
               receiptBusyId={receiptBusyId}
               scrollable
               showFulfillmentBadge={showFulfillmentBadge}
+              renderOrderExtras={renderOrderExtras}
             />
           ))}
         </div>

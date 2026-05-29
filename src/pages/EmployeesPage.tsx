@@ -39,6 +39,7 @@ const defaultValues: EmployeeFormValues = {
   pin: '',
   daily_rate: '',
   hourly_rate: '',
+  commission_per_drop: '',
   notes: '',
   emergency_contact_name: '',
   emergency_contact_phone: '',
@@ -82,6 +83,7 @@ export function EmployeesPage() {
   });
 
   const formBranchId = form.watch('branch_id');
+  const formJobTitle = form.watch('job_title');
   const atStaffLimitForForm =
     !editingId && formBranchId > 0 && isAtStaffLimit(formBranchId);
 
@@ -138,6 +140,8 @@ export function EmployeesPage() {
       pin: '',
       daily_rate: emp.daily_rate_php != null ? String(emp.daily_rate_php) : '',
       hourly_rate: emp.hourly_rate_php != null ? String(emp.hourly_rate_php) : '',
+      commission_per_drop:
+        emp.commission_per_drop_php != null ? String(emp.commission_per_drop_php) : '',
       notes: emp.notes ?? '',
       emergency_contact_name: emp.emergency_contact_name ?? '',
       emergency_contact_phone: emp.emergency_contact_phone ?? '',
@@ -381,6 +385,23 @@ export function EmployeesPage() {
                   )}
                 </div>
               </div>
+              {formJobTitle === 'rider' && (
+                <div>
+                  <Label htmlFor="commission_per_drop">Commission per drop (₱)</Label>
+                  <Input
+                    id="commission_per_drop"
+                    inputMode="decimal"
+                    placeholder="e.g. 50 per delivered order"
+                    className="mt-1"
+                    {...form.register('commission_per_drop')}
+                  />
+                  {form.formState.errors.commission_per_drop && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {form.formState.errors.commission_per_drop.message}
+                    </p>
+                  )}
+                </div>
+              )}
             </section>
 
             <section className="space-y-3">
@@ -474,11 +495,15 @@ export function EmployeesPage() {
                   {emp.phone && (
                     <p className="mt-1 text-xs text-slate-500">{emp.phone}</p>
                   )}
-                  {(emp.daily_rate_php != null || emp.hourly_rate_php != null) && (
+                  {(emp.daily_rate_php != null ||
+                    emp.hourly_rate_php != null ||
+                    emp.commission_per_drop_php != null) && (
                     <p className="mt-1 text-xs text-slate-500">
                       {emp.daily_rate_php != null && `₱${emp.daily_rate_php}/day`}
                       {emp.daily_rate_php != null && emp.hourly_rate_php != null && ' · '}
                       {emp.hourly_rate_php != null && `₱${emp.hourly_rate_php}/hr`}
+                      {emp.commission_per_drop_php != null &&
+                        `${emp.daily_rate_php != null || emp.hourly_rate_php != null ? ' · ' : ''}₱${emp.commission_per_drop_php}/drop`}
                     </p>
                   )}
                 </div>

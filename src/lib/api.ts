@@ -1,3 +1,5 @@
+import type { PayrollRun } from '../features/payroll/types';
+import type { JobTitle } from '../types/employee';
 import type { Order, OrderBoard } from '../types/order';
 
 /** Use Vite proxy in dev; set full URL in production build only. */
@@ -31,6 +33,7 @@ export type StaffEmployee = {
   branch_id: number;
   employee_code: string;
   name: string;
+  job_title: JobTitle;
   branch?: { id: number; name: string };
 };
 
@@ -232,6 +235,78 @@ export async function postOrderStatus(
   return res.data;
 }
 
+export async function assignOrderRider(
+  orderId: number,
+  employeeId: number | null,
+): Promise<Order> {
+  const res = await api<{ data: Order }>(`/orders/${orderId}/rider`, {
+    method: 'PATCH',
+    body: JSON.stringify({ employee_id: employeeId }),
+  });
+  return res.data;
+}
+
+export async function fetchPayrollRuns(params?: {
+  branch_id?: number;
+  status?: 'draft' | 'posted';
+}): Promise<PayrollRun[]> {
+  const search = new URLSearchParams();
+  if (params?.branch_id != null) {
+    search.set('branch_id', String(params.branch_id));
+  }
+  if (params?.status) {
+    search.set('status', params.status);
+  }
+  const q = search.toString();
+  const res = await api<{ data: PayrollRun[] }>(
+    `/payroll-runs${q ? `?${q}` : ''}`,
+  );
+  return res.data;
+}
+
+export async function createPayrollRun(body: {
+  period_start: string;
+  period_end: string;
+  branch_id?: number | null;
+}): Promise<PayrollRun> {
+  const res = await api<{ data: PayrollRun }>('/payroll-runs', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  return res.data;
+}
+
+export async function fetchPayrollRun(id: number): Promise<PayrollRun> {
+  const res = await api<{ data: PayrollRun }>(`/payroll-runs/${id}`);
+  return res.data;
+}
+
+export async function postPayrollRun(id: number): Promise<PayrollRun> {
+  const res = await api<{ data: PayrollRun }>(`/payroll-runs/${id}/post`, {
+    method: 'POST',
+  });
+  return res.data;
+}
+
+export async function fetchStaffRiderDeliveries(): Promise<Order[]> {
+  const res = await staffApi<{ data: Order[] }>('/staff/rider/deliveries');
+  return res.data;
+}
+
+export async function postStaffRiderOrderStatus(
+  orderId: number,
+  status: string,
+): Promise<Order> {
+  const res = await staffApi<{ data: Order }>(
+    `/staff/rider/orders/${orderId}/status`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ status }),
+    },
+  );
+  return res.data;
+}
+
 export async function staffLogin(body: {
   branch_id?: number;
   employee_id?: number;
@@ -262,6 +337,8 @@ export async function postStaffOrder(body: {
   customer_phone?: string;
   points_redeemed?: number;
   notes?: string;
+  delivery_address?: string;
+  delivery_neighborhood?: string;
   items: Array<{
     description: string;
     quantity?: number;

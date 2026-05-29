@@ -158,6 +158,10 @@ export function StaffOrdersPage() {
     const points =
       customerType === 'suki' && Number.isFinite(redeemed) && redeemed > 0 ? redeemed : undefined;
 
+    const address = deliveryAddress.trim();
+    const neighborhood =
+      address.split(/\r?\n/)[0]?.split(',')[0]?.trim() || address;
+
     setCreating(true);
     try {
       await postStaffOrder({
@@ -167,7 +171,12 @@ export function StaffOrdersPage() {
         customer_name:
           customerType === 'suki' ? customerName.trim() : customerName.trim() || undefined,
         points_redeemed: points,
-        notes: isDelivery ? deliveryAddress.trim() : undefined,
+        ...(isDelivery
+          ? {
+              delivery_address: address,
+              delivery_neighborhood: neighborhood,
+            }
+          : {}),
         items: [
           {
             description: itemDescription.trim(),

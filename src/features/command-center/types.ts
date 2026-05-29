@@ -4,6 +4,8 @@ export type CommandCenterPulse = {
   revenue_cents: number;
   expenses_cents: number;
   gross_profit_cents: number;
+  labor_cents: number;
+  net_margin_cents: number;
   orders_settled: number;
   orders_created: number;
   orders_in_progress: number;
@@ -16,6 +18,8 @@ export type CommandCenterCompareRow = {
   revenue_cents: number;
   expenses_cents: number;
   gross_profit_cents: number;
+  labor_cents: number;
+  net_margin_cents: number;
   orders_settled: number;
 };
 

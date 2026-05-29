@@ -23,6 +23,7 @@ export type Employee = {
   hire_date: string | null;
   hourly_rate_php: number | null;
   daily_rate_php: number | null;
+  commission_per_drop_php: number | null;
   notes: string | null;
   emergency_contact_name: string | null;
   emergency_contact_phone: string | null;

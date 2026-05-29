@@ -33,6 +33,12 @@ export type OrderBranchEmbed = {
   name: string;
 };
 
+export type OrderRiderEmbed = {
+  id: number;
+  name: string;
+  employee_code: string | null;
+};
+
 export type Order = {
   id: number;
   account_id: number;
@@ -47,6 +53,10 @@ export type Order = {
   settled_at: string | null;
   customer?: OrderCustomerEmbed | null;
   notes: string | null;
+  delivery_address: string | null;
+  delivery_neighborhood: string | null;
+  rider_employee_id: number | null;
+  rider?: OrderRiderEmbed | null;
   items?: OrderItem[];
   branch?: OrderBranchEmbed;
   created_at: string | null;

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { ownerNav, staffNav, type NavItem } from '../lib/navigation';
+import { ownerNav, riderNav, staffNav, type NavItem } from '../lib/navigation';
 import { cn } from '../lib/cn';
 
 const sideLink = ({ isActive }: { isActive: boolean }) =>
@@ -11,12 +11,13 @@ const sideLink = ({ isActive }: { isActive: boolean }) =>
   );
 
 type Props = {
-  variant: 'owner' | 'staff';
+  variant: 'owner' | 'staff' | 'rider';
   companyName?: string;
 };
 
 export function SidebarNav({ variant, companyName }: Props) {
-  const items: NavItem[] = variant === 'staff' ? staffNav : ownerNav;
+  const items: NavItem[] =
+    variant === 'rider' ? riderNav : variant === 'staff' ? staffNav : ownerNav;
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card lg:flex">
@@ -46,7 +47,11 @@ export function SidebarNav({ variant, companyName }: Props) {
       {/* Footer */}
       <div className="border-t border-border px-4 py-3">
         <p className="text-xs text-muted-foreground">
-          {variant === 'staff' ? 'Staff Portal' : 'Owner Portal'}
+          {variant === 'rider'
+            ? 'Rider Portal'
+            : variant === 'staff'
+              ? 'Staff Portal'
+              : 'Owner Portal'}
         </p>
       </div>
     </aside>
